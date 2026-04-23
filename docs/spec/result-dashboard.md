@@ -2,7 +2,7 @@
 
 > 対象: ROI診断アプリ「またたび計算機」 / 関連Issue: #3 / マスター設計書: [`.claude/ROI診断アプリ「またたび計算機」開発・設計ドキュメント一式.md`](../../.claude/ROI診断アプリ「またたび計算機」開発・設計ドキュメント一式.md) §3.2, §3.3 / 前提: [`calculation-logic.md`](./calculation-logic.md), [`input-form.md`](./input-form.md)
 
-本ドキュメントは、マスター設計書 §3.2 の `ResultDashboard` コンポーネント（「アニメーションを用いた数値カウンター、カード型UI」）を実装可能なレベルまで確定するための仕様書である。指標カードの構成・グラフの種別と描画ライブラリ・アニメーション方針・レスポンシブレイアウト・警告バナーの UI 骨格・PDF 連携戦略を本書で確定する。Issue #5（PDF レポート）と Issue #8（依存ライブラリ追加）は本仕様を前提に設計される。
+本ドキュメントは、マスター設計書 §3.2 の `ResultDashboard` コンポーネント（「アニメーションを用いた数値カウンター、カード型UI」）を実装可能なレベルまで確定するための仕様書です。指標カードの構成・グラフの種別と描画ライブラリ・アニメーション方針・レスポンシブレイアウト・警告バナーの UI 骨格・PDF 連携戦略を本書で確定します。Issue #5（PDF レポート）と Issue #8（依存ライブラリ追加）は本仕様を前提に設計されます。
 
 ---
 
@@ -86,7 +86,7 @@
 ├──────────────────────────────────────────────┤
 │  [止血カード]          [年間創出カード]        │
 │  ◯◯万円               ◯◯万円               │
-│  内製化 n% 除外         × 3年 = ◯◯万円        │
+│  ※内製化分控除          × 3年 = ◯◯万円       │
 ├──────────────────────────────────────────────┤
 │         積み上げ横棒グラフ (1 本)              │
 │         Blue=止血 / Amber=3年創出             │
@@ -94,6 +94,8 @@
 │         [PDF ダウンロード] [再診断]           │
 └──────────────────────────────────────────────┘
 ```
+
+> 注記: ワイヤー内の「※内製化分控除」は領域確保のための短縮表記。実際の注記文言は §3.3 に従い「既に内製化されている ◯% 相当分は削減余地から除外済み」を使用する。
 
 ---
 
@@ -125,6 +127,7 @@
 | 3年間の止血 | `#3B82F6`（Blue 500 / 知的色） | マスター設計書 §3.3 のアクセント色。 |
 | 3年間の利益創出 | `#F59E0B`（Amber 500 / 猫の温かみ） | 同上。 |
 
+- **色と期間の関係**: Amber は補助カードの「年間の利益創出」とグラフの「3年間の利益創出」で共通して利用する。色は「利益創出」という指標の種類を示し、**期間の別（年間 / 3年）は数値・ラベル側で判別**する。同様に Blue は「止血」指標全般を示し、補助カードとグラフで同色を共用する。
 - 色覚多様性対応として、凡例ラベルに Lucide アイコン（止血=`piggy-bank`、創出=`sparkles`）を添える。
 
 ### 4.3 凡例・ツールチップ
@@ -170,6 +173,7 @@
 - 具体的なマイナー版固定は Issue #8（依存ライブラリ追加）のスコープ。`package.json` への追加時にセマンティックバージョニングで `^2.x.y` を検討。
 - SSR 境界の注意: `ResultDashboard` / `DashboardView` は **クライアントコンポーネント**として実装する必要あり（`"use client"` 指定、§11 リスク R1）。
 - 初回 LCP を守るため、`ResultDashboard` は `next/dynamic` で遅延ロードする方針（§11 リスク R8）。
+- 凡例アイコンで使用する `lucide-react` は `.claude/issue-order.md` のフェーズ1 #8 にすでに列挙されているため、本仕様書での追加要求はなし（本仕様書での新規依存は Recharts のみ）。
 
 ---
 
@@ -280,7 +284,8 @@
 ### 8.5 文言のプレースホルダ化
 
 - 本仕様書では文言は **Issue #4 のスコープ**として扱う。
-- 実装ファイル上は `"{{CRITICAL_OPPORTUNITY_LOSS_MESSAGE}}"` 相当のキーで扱い、Issue #4 完了後に差し替える運用とする。
+- Issue #6 の実装では `src/lib/messages.ts`（または `src/lib/warnings.ts`）に **文字列定数 `CRITICAL_OPPORTUNITY_LOSS_MESSAGE`** を置き、`DashboardView` の `warningMessage` props に渡す。Issue #4 完了時はこの定数を差し替えるだけで済む形にする（本仕様書の擬似コードやワイヤー図で `"{{CRITICAL_OPPORTUNITY_LOSS_MESSAGE}}"` と書かれている箇所は、実装ではこの定数参照で置換する）。
+- 将来的に i18n 化する場合は同定数を i18n キーに差し替える余地を残すが、現時点では文字列定数で十分。
 - `calculation-logic.md §7` の「『CRITICAL OPPORTUNITY LOSS』を含む警告 UI（文言の最終版は Issue #4 で確定）」と整合。
 
 ---
@@ -308,12 +313,12 @@ export function formatManYen(yen: number): string {
 
 ### 9.2 桁爆発時の代替表記（大企業顧客対応）
 
-`monthlyVendorCost` 上限 1 億円/月 × 36ヶ月 ＋ 創出で **数十億円級**のヒーロー数値が発生しうる。読みやすさのため、閾値超過時は `◯億◯万円` 表記に切り替える。
+`monthlyVendorCost` 上限 1 億円/月 × 36ヶ月 ＋ 創出で **36 億円級**のヒーロー数値が発生しうる（`input-form.md §4.1` の上限値に基づく）。読みやすさのため、**10 億円以上**のとき `◯億◯万円` 表記に切り替える。閾値を「10 億円」に置くのは、`input-form.md` の上限運用で発生しうる最大値（36 億円級）に対して 1 桁下まで「万円」表記で通し、さらに桁が増えた時点で億表記に切り替える読みやすさの転換点としたため。
 
 ```ts
 /**
  * ヒーロー数値専用の大桁対応フォーマッタ。
- * 10億円（= 10万万円、yen >= 1_000_000_000）を超える場合に「◯億◯万円」表記に切り替える。
+ * 10億円（= 100,000 万円、yen >= 1_000_000_000）以上の場合に「◯億◯万円」表記に切り替える。
  */
 export function formatManYenCompact(yen: number): string {
   const manYen = Math.round(yen / 10_000);
@@ -370,9 +375,11 @@ interface DashboardViewProps {
   insourcingLevel: InsourcingLevel;   // 内製化注記（§3.3）のため
   animated: boolean;                  // 画面: prefers-reduced-motion 次第 / PDF: 常に false
   showWarningBanner: boolean;         // = result.speedWarning
-  warningMessage?: string;            // Issue #4 完了後に差し替え
+  warningMessage?: string;            // §8.5 の CRITICAL_OPPORTUNITY_LOSS_MESSAGE 定数を渡す
 }
 ```
+
+> 型定義の補足: `animated` と `showWarningBanner` は意図的に **required** とする。`animated` は §11 リスク R10（PDF 版で OS 設定に関わらず `false` を強制する必要）から呼び出し側が必ず明示する設計。`showWarningBanner` も `result.speedWarning` から自明とはいえ、呼び出し側の意図を明確化するため required にする。`warningMessage` のみ Issue #4 連携のためオプショナルとし、未指定時はフォールバック文言もしくは `"{{CRITICAL_OPPORTUNITY_LOSS_MESSAGE}}"` プレースホルダを表示する（§8.5 参照）。
 
 ### 10.4 Issue #5 への申し送り
 
@@ -452,9 +459,10 @@ interface DashboardViewProps {
 - [x] 文言受け入れのためのプレースホルダ化: `"{{CRITICAL_OPPORTUNITY_LOSS_MESSAGE}}"` 相当、Issue #4 完了後差し替え → §8.5
 
 ### 表示単位・丸め
-- [x] `calculation-logic.md §6` 準拠の明記: 万円単位四捨五入、ゼロ値はそのまま → §9.1
-- [x] `formatManYen` 擬似コード掲載: → §9.1
-- [x] 桁爆発時の表記ルール: `formatManYenCompact` で 10 億円超を「◯億◯万円」 → §9.2
+- [x] `calculation-logic.md §6` 準拠の明記: 万円単位四捨五入 → §9.1
+- [x] `formatManYen` 擬似コード掲載 → §9.1
+- [x] ゼロ値の扱い（ハイフン置換せずそのまま `0万円`） → §9.1
+- [x] 桁爆発時の表記ルール: `formatManYenCompact` で 10 億円以上を「◯億◯万円」 → §9.2
 
 ### PDF 連携
 - [x] PDF 用スナップショット戦略: **別立て**（`PdfDashboard`） → §10.1
@@ -465,6 +473,7 @@ interface DashboardViewProps {
 - [x] 仕様書の保存先: `docs/spec/result-dashboard.md`
 - [x] マスター設計書 §3.2・§3.3 からの参照関係記載
 - [x] `calculation-logic.md` / `input-form.md` との整合確認記載（§1.2 前提）
+- [x] Issue #6 以降での参照箇所明示 → §13 関連 Issue 表
 - [ ] **[TODO / マージ後]** マスター設計書 §3.2 の `ResultDashboard` 行に `docs/spec/result-dashboard.md` への参照を 1 行追記
 - [ ] **[TODO / マージ後]** Issue #4・#5・#8 の説明欄に「本仕様書の該当節を参照」と追記
 
@@ -479,4 +488,4 @@ interface DashboardViewProps {
 | #4 警告コピー文言 | §8（UI 骨格は本仕様書、文言は #4 スコープ）。§8.5 のプレースホルダ差し替えを運用 |
 | #5 PDF レポートレイアウト | §10（スナップショット戦略）、§7（レイアウト流用元）、§10.4（SVG フォント申し送り） |
 | #6 Next.js 雛形作成後 | §5.1（Recharts 採用）、§6.1（`useCountUp` 実装）、§9.1（`formatManYen` 実装）、§10.2（`DashboardView` / `ResultDashboard` / `PdfDashboard` 分離）、`"use client"` 指定（R1）、`next/dynamic` 遅延ロード（R8） |
-| #8 依存ライブラリ追加 | §5.3（Recharts v2 系のバージョン方針）、`lucide-react` は既に issue-order.md #8 で列挙済み |
+| #8 依存ライブラリ追加 | §5.3（Recharts v2 系のバージョン方針） |
