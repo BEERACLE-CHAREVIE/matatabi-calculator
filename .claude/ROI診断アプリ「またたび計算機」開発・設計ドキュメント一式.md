@@ -23,6 +23,8 @@
 | 出力表示 | 診断結果ダッシュボード | 数値、グラフ、警告メッセージを視覚的に表示。 |
 | 成果物生成 | PDFレポート出力 | 診断結果をA4サイズのPDFとして生成・ダウンロード。 |
 
+> PDFレポート出力の詳細仕様は [`docs/spec/pdf-report.md`](../docs/spec/pdf-report.md) を参照（Issue #5 で確定）。
+
 ### **1.4. 非機能要件**
 
 * **レスポンシブ対応：** 商談の場でのタブレット・スマートフォン利用を想定し、全デバイスで快適に動作すること。  
@@ -42,6 +44,8 @@
 
 * **PDF生成:** jsPDF ＋ html2canvas (クライアントサイドでの即時生成)  
 * **状態管理:** React Context API または標準の useState (小規模アプリのため軽量化を優先)
+
+> PDF 生成アプローチ（html2canvas 主体 + jsPDF 画像貼付）、バージョン指針（jsPDF v2 系・html2canvas v1 系）、遅延ロード方針は [`docs/spec/pdf-report.md`](../docs/spec/pdf-report.md) を参照（Issue #5 で確定）。
 
 ### **2.3. インフラ・デプロイ**
 
@@ -70,6 +74,8 @@
 4. **PdfGenerator:** 隠しDOM要素（A4比率）を画像化しPDFに変換するロジック。
 
 > 確定仕様は [`docs/spec/result-dashboard.md`](../docs/spec/result-dashboard.md) を参照（Issue #3 で確定）。`ResultDashboard` の指標カード構成、グラフ種別・ライブラリ選定、アニメーション方針、レスポンシブレイアウト、警告バナー UI 骨格、PDF 連携方針はそちらが正本。
+>
+> `PdfGenerator`（実体: `PdfDashboard` + `src/lib/pdf.ts` + `src/lib/pdfFilename.ts`）の A4 内部レイアウト・フォント埋め込み方針・生成ユーティリティ API は [`docs/spec/pdf-report.md`](../docs/spec/pdf-report.md) を参照（Issue #5 で確定）。
 
 ### **3.3. デザインガイドライン**
 

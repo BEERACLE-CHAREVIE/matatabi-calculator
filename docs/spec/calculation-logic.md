@@ -248,5 +248,5 @@ function calculate(input: Inputs): CalculationResult {
 | #2 入力フォーム 5 項目の UI 仕様 | §2（固定値扱い）、§4.1（内製化選択肢）、§5（Inputs 型） |
 | #3 診断結果グラフの種別 | §5（CalculationResult 型）、§6（表示単位） |
 | #4 警告コピー文言 | §4.4（カテゴリ別表示文）、§7（スピード警告条件） |
-| #5 PDF レポートレイアウト | §5（出力項目）、§6（表示ルール） |
+| #5 PDF レポートレイアウト | §5（出力項目）、§6（表示ルール）。**確定仕様は [`pdf-report.md`](./pdf-report.md) を参照（Issue #5 で確定）** |
 | #6 Next.js 雛形作成後 | §5 の擬似コードを `src/lib/constants.ts` / `src/lib/calculation.ts` として実装。`InsourcingLevel` は `as const` 配列からリテラル union 型を導出する／Zod 等のバリデーションで入力を締める等、実行時・型の両面から堅牢化することを推奨 |
