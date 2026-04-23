@@ -387,6 +387,8 @@ interface DashboardViewProps {
 - **A4 比率**: A4 縦（210 × 297mm = 595 × 842pt @72dpi）に合わせた隠し DOM を用意。詳細レイアウトは Issue #5 のスコープ。
 - **レイアウト流用**: `DashboardView` の props 互換を保ったまま、PDF 側で独自のラッパを作り A4 フィットさせる。画面側の変更で PDF が壊れないことを保証する。
 
+> **確定仕様は [`pdf-report.md`](./pdf-report.md) を参照（Issue #5 で確定）**。A4 内部レイアウト・フォント埋め込み・html2canvas 詳細・`PdfDashboardProps` 型・生成ユーティリティの API はすべて `pdf-report.md §3〜§11` に集約。
+
 ---
 
 ## 11. 未解決事項 / 将来拡張
@@ -396,7 +398,7 @@ interface DashboardViewProps {
 ### plan §4 由来（リスクから持ち越し）
 
 - **R1: Next.js App Router の SSR 境界**: `ResultDashboard` と `DashboardView` は `"use client"` が必須。Issue #6 の実装で冒頭に付与する。
-- **R2: html2canvas と SVG のフォント互換性**: PDF 用スナップショットでは外部フォント依存を作らない方針を Issue #5 へ申し送り。
+- **R2: html2canvas と SVG のフォント互換性**: PDF 用スナップショットでは外部フォント依存を作らない方針を Issue #5 へ申し送り。→ [`pdf-report.md §4`](./pdf-report.md) で `next/font/local` + Noto Sans JP subset に確定。
 - **R3: カウンター補間と万円丸めの不整合**: `rAF` の最終コールバックで target 値をそのまま `formatManYen(target)` で表示して浮動小数誤差を打ち消す。
 - **R4: 完全内製顧客（止血 = 0）の凡例**: 凡例は構造を保ち、カード側注記（§3.3）で文脈を語る方針。凡例の動的除外はしない。
 - **R5: ヒーロー数値の桁爆発**: §9.2 の `formatManYenCompact` で `10 億円` 超を「◯億◯万円」表記に切り替える。
@@ -404,7 +406,7 @@ interface DashboardViewProps {
 - **R7: アニメーション再発動制御**: `ResultDashboard` に `key={hash(result)}` を渡してリマウントを強制する。
 - **R8: Recharts のバンドルサイズ**: `next/dynamic` で `ResultDashboard` を遅延ロードし、初回 LCP を守る。
 - **R9: `insourcingGap` 注記の誤読防止**: 「内製化 n% 除外」ではなく「既に内製化されている ◯% 相当分は削減余地から除外済み」と表記（§3.3）。
-- **R10: PDF 版での `prefers-reduced-motion` 独立性**: OS 設定に関わらず `animated={false}` を強制（§10.2）。
+- **R10: PDF 版での `prefers-reduced-motion` 独立性**: OS 設定に関わらず `animated={false}` を強制（§10.2）。→ [`pdf-report.md §9.1`](./pdf-report.md) で継承確認。
 
 ### 本仕様書で追加した将来論点
 

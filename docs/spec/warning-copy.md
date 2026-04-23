@@ -370,6 +370,8 @@ Issue #5（PDF レポートのレイアウト仕様）で以下を検討する:
 - PDF 内に「生成日時」の注記を入れるか（入力値が変わった場合に PDF の古さを示す手がかり）。
 - PDF での `animated=false` 強制時、フェードインアニメーションも無効化される（静止画像として出力されるため自明）。
 
+> **確定仕様は [`pdf-report.md`](./pdf-report.md) を参照**。バナー高さ 14mm・見出し 12pt・サブ 10pt に確定（[`pdf-report.md §5.3`](./pdf-report.md)）、生成日時はヘッダー右端に JST 固定で掲出（[`pdf-report.md §6.1`](./pdf-report.md)）、`animated={false}` 強制は [`pdf-report.md §9.1`](./pdf-report.md) で継承確認。
+
 ---
 
 ## 9. 実装契約
