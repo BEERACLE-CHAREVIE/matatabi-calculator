@@ -69,6 +69,8 @@
 3. **ResultDashboard:** アニメーションを用いた数値カウンター、カード型UI。  
 4. **PdfGenerator:** 隠しDOM要素（A4比率）を画像化しPDFに変換するロジック。
 
+> `ResultDashboard` の詳細仕様は [`docs/spec/result-dashboard.md`](../docs/spec/result-dashboard.md) を参照（Issue #3 で確定）。指標カード構成、グラフ種別・ライブラリ選定、アニメーション方針、レスポンシブレイアウト、警告バナー UI 骨格、PDF 連携方針はそちらが正本。
+
 ### **3.3. デザインガイドライン**
 
 * **ベースカラー:** \#F8FAFC (Slate 50\)  
