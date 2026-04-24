@@ -20,16 +20,27 @@
 .DS_Store
 *.pem
 
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
+.env
+.env.local
+.env.*.local
 
 # vercel
 .vercel
+
+# Cloudflare Pages / Wrangler (used from Issue #11)
+.wrangler/
 
 # typescript
 *.tsbuildinfo
