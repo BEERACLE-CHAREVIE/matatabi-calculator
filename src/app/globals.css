@@ -1,3 +1,15 @@
+/*
+ * 設計方針:
+ * - カラーは tailwind.config.ts の theme.extend.colors に HEX 直書きで集約する。
+ *   CSS 変数を挟まないことで、JS 側（html2canvas / Recharts 等）から色を
+ *   参照したい場合に getComputedStyle を要さない。
+ * - ライトモード限定。設計ガイドライン 3.3 にダークモード指定はないため、
+ *   prefers-color-scheme: dark のオーバーライドは意図的に置かない。
+ *   ダークモード対応を追加する場合は tailwind.config.ts 側で darkMode を
+ *   設定し、トークンレベルで切り替えること（<body> の Tailwind クラス上書きで
+ *   ダーク対応を実装しないこと）。
+ * - 背景色・文字色は layout.tsx の <body> クラス (bg-canvas text-ink) で当てる。
+ */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
