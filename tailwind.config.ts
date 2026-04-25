@@ -9,8 +9,23 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        offwhite: "#F8F6F2",
+        ash: "#72665B",
+        greige: "#BEB5AA",
+        misty: "#9CAEB8",
+
+        base: "#F8F6F2",
+        text: "#72665B",
+        border: "#BEB5AA",
+        accent: "#9CAEB8",
+      },
+      fontFamily: {
+        sans: [
+          "var(--font-inter)",
+          "var(--font-noto-sans-jp)",
+          "system-ui",
+          "sans-serif",
+        ],
       },
     },
   },
