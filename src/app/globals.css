@@ -9,10 +9,27 @@
  *   設定し、トークンレベルで切り替えること（<body> の Tailwind クラス上書きで
  *   ダーク対応を実装しないこと）。
  * - 背景色・文字色は layout.tsx の <body> クラス (bg-canvas text-ink) で当てる。
+ * - Issue #10 で @layer base に focus-visible リング統一 / palt /
+ *   optimizeLegibility / -webkit-tap-highlight-color の抑制を追加。
  */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    font-feature-settings: "palt" 1;
+    text-rendering: optimizeLegibility;
+  }
+  *:focus-visible {
+    outline: 2px solid #9CAEB8;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
 
 @layer utilities {
   .text-balance {
