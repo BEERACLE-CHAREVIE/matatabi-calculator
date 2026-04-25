@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" role="img" aria-label="またたび計算機">
+  <title>またたび計算機</title>
+  <g fill="#72665B" stroke="#72665B" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 14 L13 4 L18 16 Z" stroke-width="1.4"/>
+    <path d="M28 14 L23 4 L18 16 Z" stroke-width="1.4"/>
+    <circle cx="18" cy="22" r="9" fill="none" stroke-width="1.6"/>
+    <circle cx="14.6" cy="21" r="0.9"/>
+    <circle cx="21.4" cy="21" r="0.9"/>
+    <path d="M16.8 24 L19.2 24 L18 25.4 Z"/>
+    <path d="M9 22 L13 22 M9 24 L13 24" stroke-width="1.2" fill="none"/>
+    <path d="M27 22 L23 22 M27 24 L23 24" stroke-width="1.2" fill="none"/>
+  </g>
+  <text x="42" y="27" font-family="'Noto Sans JP','Hiragino Sans','Yu Gothic',sans-serif" font-size="17" font-weight="700" fill="#72665B" letter-spacing="0.4">またたび計算機</text>
+</svg>
