@@ -1,3 +1,6 @@
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-10 p-8">
@@ -11,7 +14,7 @@ export default function Home() {
         </p>
       </section>
 
-      {/* TODO: UI 本実装時に削除 */}
+      {/* TODO: UI 本実装時に削除（Issue #2 / #3 / #4 / #5） */}
       <section aria-label="カラートークン プレビュー" className="w-full max-w-xl">
         <h2 className="mb-3 text-sm font-medium">Color tokens</h2>
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -32,12 +35,68 @@ export default function Home() {
             <span className="text-xs">accent / #9CAEB8</span>
           </li>
         </ul>
-        <button
-          type="button"
-          className="mt-6 w-full rounded bg-accent px-4 py-2 font-medium text-canvas hover:opacity-90"
-        >
-          CTA サンプル（accent bg / canvas text）
-        </button>
+      </section>
+
+      {/* TODO: UI 本実装時に削除（Issue #2 / #3 / #4 / #5） */}
+      <section aria-label="角丸 / シャドウ プレビュー" className="w-full max-w-xl">
+        <h2 className="mb-3 text-sm font-medium">Radius &amp; Shadow tokens</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="rounded-md border border-line/50 bg-canvas p-4 text-center text-xs">
+            rounded-md / 6px
+          </div>
+          <div className="rounded-xl border border-line/50 bg-canvas p-4 text-center text-xs">
+            rounded-xl / 12px
+          </div>
+          <div className="rounded-2xl border border-line/50 bg-canvas p-4 text-center text-xs">
+            rounded-2xl / 16px
+          </div>
+          <div className="rounded-xl bg-canvas p-4 text-center text-xs shadow-card">
+            shadow-card
+          </div>
+          <div className="rounded-xl bg-canvas p-4 text-center text-xs shadow-card-hover">
+            shadow-card-hover
+          </div>
+          <div className="rounded-xl bg-canvas p-4 text-center text-xs shadow-floating">
+            shadow-floating
+          </div>
+        </div>
+      </section>
+
+      {/* TODO: UI 本実装時に削除（Issue #2 / #3 / #4 / #5） */}
+      <section aria-label="Button プレビュー" className="w-full max-w-xl">
+        <h2 className="mb-3 text-sm font-medium">Button (variant × size)</h2>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button variant="primary" size="sm">
+            Primary sm
+          </Button>
+          <Button variant="primary" size="md">
+            Primary md
+          </Button>
+          <Button variant="primary" size="lg">
+            Primary lg
+          </Button>
+          <Button variant="secondary">Secondary</Button>
+          <Button variant="ghost">Ghost</Button>
+          <Button disabled>Disabled</Button>
+        </div>
+      </section>
+
+      {/* TODO: UI 本実装時に削除（Issue #2 / #3 / #4 / #5） */}
+      <section aria-label="Card プレビュー" className="w-full max-w-xl">
+        <h2 className="mb-3 text-sm font-medium">Card</h2>
+        <Card>
+          <h3 className="mb-2 text-base font-semibold">Card title</h3>
+          <p className="text-sm text-ink/80">
+            rounded-xl / border-line/50 / shadow-card / p-6 がデフォルト。
+            モバイルで padding を縮める場合は className=&quot;p-4 sm:p-6&quot; を渡す。
+          </p>
+          <div className="mt-4 flex gap-2">
+            <Button size="sm">アクション</Button>
+            <Button variant="ghost" size="sm">
+              サブ
+            </Button>
+          </div>
+        </Card>
       </section>
     </main>
   );
