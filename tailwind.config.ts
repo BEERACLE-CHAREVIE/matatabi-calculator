@@ -14,9 +14,9 @@ const config: Config = {
         greige: "#BEB5AA",
         misty: "#9CAEB8",
 
-        base: "#F8F6F2",
-        text: "#72665B",
-        border: "#BEB5AA",
+        canvas: "#F8F6F2",
+        ink: "#72665B",
+        line: "#BEB5AA",
         accent: "#9CAEB8",
       },
       fontFamily: {

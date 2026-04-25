@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body
-        className={`${inter.variable} ${notoSansJp.variable} bg-base text-text antialiased`}
+        className={`${inter.variable} ${notoSansJp.variable} bg-canvas text-ink antialiased`}
       >
         {children}
       </body>
