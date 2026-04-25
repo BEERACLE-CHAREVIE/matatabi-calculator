@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" aria-hidden="true">
+  <g fill="#BEB5AA">
+    <path d="M70 60 L82 28 L95 60 Z"/>
+    <path d="M130 60 L118 28 L105 60 Z"/>
+    <ellipse cx="100" cy="150" rx="55" ry="42"/>
+    <circle cx="100" cy="78" r="36"/>
+  </g>
+  <path d="M155 155 Q182 138 178 102 Q175 82 158 88" fill="none" stroke="#BEB5AA" stroke-width="14" stroke-linecap="round"/>
+  <g fill="#F8F6F2">
+    <circle cx="90" cy="74" r="2.4"/>
+    <circle cx="110" cy="74" r="2.4"/>
+    <path d="M96 84 L104 84 L100 88 Z"/>
+  </g>
+</svg>
