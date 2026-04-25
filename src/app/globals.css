@@ -25,7 +25,7 @@
     text-rendering: optimizeLegibility;
   }
   *:focus-visible {
-    outline: 2px solid #9caeb8;
+    outline: 2px solid #9CAEB8;
     outline-offset: 2px;
     border-radius: 2px;
   }

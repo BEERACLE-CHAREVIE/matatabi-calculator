@@ -63,6 +63,19 @@ export default function Home() {
       </section>
 
       {/* TODO: UI 本実装時に削除（Issue #2 / #3 / #4 / #5） */}
+      <section aria-label="タイポグラフィ補強 プレビュー" className="w-full max-w-xl">
+        <h2 className="mb-3 text-sm font-medium">Typography tokens</h2>
+        <div className="rounded-xl border border-line/50 bg-canvas p-4 text-center">
+          <span className="text-xs font-bold uppercase tracking-warning text-ink">
+            CRITICAL OPPORTUNITY LOSS
+          </span>
+          <p className="mt-1 text-[10px] text-ink/60">
+            tracking-warning / 0.06em（Issue #4 で WarningBanner が消費予定）
+          </p>
+        </div>
+      </section>
+
+      {/* TODO: UI 本実装時に削除（Issue #2 / #3 / #4 / #5） */}
       <section aria-label="Button プレビュー" className="w-full max-w-xl">
         <h2 className="mb-3 text-sm font-medium">Button (variant × size)</h2>
         <div className="flex flex-wrap items-center gap-3">
