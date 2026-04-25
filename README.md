@@ -18,8 +18,11 @@
 
 ### インストール
 
+`packageManager` フィールド (`npm@10.9.2`) を尊重するため、Corepack を有効化したうえでインストールしてください。
+
 ```bash
 nvm use
+corepack enable
 npm install
 ```
 
