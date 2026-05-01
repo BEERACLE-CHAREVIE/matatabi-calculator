@@ -145,21 +145,23 @@
 | 区分 | 主な advisory 経路 | 重大度 | 修正版 |
 |---|---|---|---|
 | `next` 本体 | next の複数 advisory + 推移依存 `postcss` 経由 | high | `next@16.2.4` 以降 |
-| `glob` | 古い `glob` の依存を `@next/eslint-plugin-next` 経由で要求 | high | `next@16` の依存解決追従 |
+| `glob` | `@next/eslint-plugin-next` と相互に推移依存（`glob` 自体の advisory が plugin 経由で連鎖） | high | `next@16` の依存解決追従 |
 | `eslint-config-next` | `@next/eslint-plugin-next` 経由 | high | `next@16` の依存解決追従 |
-| `@next/eslint-plugin-next` | `glob` 経由 | high | `next@16` の依存解決追従 |
+| `@next/eslint-plugin-next` | `glob` と相互に推移依存 | high | `next@16` の依存解決追従 |
 | `postcss` | `next` の推移依存 | moderate | `next@16` の依存解決追従 |
 
-#### 即時更新しない理由
+#### 6.4.1 即時更新しない理由
 
 - 本リポジトリは `next@14.2.35` で App Router / `next/font/local` / `@cloudflare/next-on-pages` 連携を前提に運用される（`.claude/issue-order.md` フェーズ 3 / `README.md` の Cloudflare Pages 設定）。
 - `next@14 → next@16` は **メジャー 2 段飛び**（v14 → v15 → v16）。Breaking changes の影響範囲（App Router の細部、middleware API、画像最適化、`next/font/local` の挙動）を Issue #50 のスコープで吸収するのは過大。
 - `@cloudflare/next-on-pages` が `next@16` の Edge Runtime 仕様変更にどこまで追従済みかも別途検証が必要。
 
-#### 別 Issue 化方針
+#### 6.4.2 別 Issue 化方針
 
 - 「Next.js 14 → 16 メジャー更新」を独立した調査・移行 Issue として切り出す（本 Issue 完了後に起票予定）。`postcss` / `glob` は `next` の依存解決に追従する形で同時更新する想定。
 - 本 Issue（#50）完了時点では、`.github/workflows/security-audit.yml` の `audit-level=critical` を維持し、high レベルの CI 赤化は当面起こさない運用とする（critical 1 件の赤化のみ §6.2 に従って許容）。
+
+> **TODO（追跡用）**: 「Next.js 14 → 16 メジャー更新」Issue が起票され次第、本節（§6.4.2）の 1 つ目の箇条書きに当該 Issue 番号（例: `#XX`）を追記すること。Issue #50 のマージ後の作業として実施し、起票が漏れた場合は本書の `git blame` 経由で本 TODO を発見できるよう、行を残しておく。
 
 ## 7. レビュー観点（Issue #5 担当者向け申し送り）
 

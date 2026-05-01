@@ -93,7 +93,7 @@ pdf.save(options.filename);
 1. `docs/security/jspdf-vulnerabilities.md §3` の到達経路分析で 10 件すべて到達不能と判定済み。
 2. v3 / v4 系のリリースから Issue #5 着手予定までの期間が短く、「枯れ」が不足している（Path Traversal の修正版は v4.0.0+ のみで、v4 メジャーリリース直後の `0day` / regression リスクが大きい）。
 3. `html2canvas` との連携破壊リスクが Issue #5 のスケジュールと正面衝突する。
-4. `package.json` `overrides` で `dompurify` を強制更新する代替案も `docs/security/jspdf-vulnerabilities.md §6.3` で否定済み（jspdf v2 内部 API 破壊リスクのほうが実害大）。
+4. `package.json` の `overrides` で `dompurify` を強制更新する代替案も `docs/security/jspdf-vulnerabilities.md §6.3` で否定済み（jspdf v2 内部 API 破壊リスクのほうが実害大）。
 
 ### 5.2 本 Issue（#50）でのアクション
 
