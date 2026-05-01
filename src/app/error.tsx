@@ -69,7 +69,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
           <summary className="cursor-pointer font-medium text-ink">
             エラー詳細（開発環境のみ表示）
           </summary>
-          <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words text-[11px] leading-relaxed">
+          <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed">
             {error.message}
             {error.digest ? `\n\ndigest: ${error.digest}` : null}
           </pre>

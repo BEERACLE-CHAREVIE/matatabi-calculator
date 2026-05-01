@@ -21,11 +21,7 @@ const DEFAULT_CTA: Required<HeaderNavCtaConfig> = {
 };
 
 export function Header({ className, cta }: HeaderProps = {}) {
-  const ctaConfig = {
-    label: cta?.label ?? DEFAULT_CTA.label,
-    shortLabel: cta?.shortLabel ?? DEFAULT_CTA.shortLabel,
-    href: cta?.href ?? DEFAULT_CTA.href,
-  };
+  const ctaConfig = { ...DEFAULT_CTA, ...(cta ?? {}) };
 
   return (
     <header
@@ -39,7 +35,7 @@ export function Header({ className, cta }: HeaderProps = {}) {
         <Link
           href="/"
           aria-label="またたび計算機 トップページ"
-          className="inline-flex items-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          className="inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         >
           <Image
             src="/brand/logo-header.svg"
