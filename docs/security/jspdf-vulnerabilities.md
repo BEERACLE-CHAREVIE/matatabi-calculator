@@ -158,10 +158,8 @@
 
 #### 6.4.2 別 Issue 化方針
 
-- 「Next.js 14 → 16 メジャー更新」を独立した調査・移行 Issue として切り出す（本 Issue 完了後に起票予定）。`postcss` / `glob` は `next` の依存解決に追従する形で同時更新する想定。
+- 「Next.js 14 → 16 メジャー更新」は **Issue #53** として切り出し済み（2026-05-01 起票）。`postcss` / `glob` は `next` の依存解決に追従する形で同時更新する想定。
 - 本 Issue（#50）完了時点では、`.github/workflows/security-audit.yml` の `audit-level=critical` を維持し、high レベルの CI 赤化は当面起こさない運用とする（critical 1 件の赤化のみ §6.2 に従って許容）。
-
-> **TODO（追跡用）**: 「Next.js 14 → 16 メジャー更新」Issue が起票され次第、本節（§6.4.2）の 1 つ目の箇条書きに当該 Issue 番号（例: `#XX`）を追記すること。Issue #50 のマージ後の作業として実施し、起票が漏れた場合は本書の `git blame` 経由で本 TODO を発見できるよう、行を残しておく。
 
 ## 7. レビュー観点（Issue #5 担当者向け申し送り）
 
