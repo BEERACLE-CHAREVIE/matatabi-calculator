@@ -38,14 +38,12 @@ export function Hero({ headline, subCopy, ctaLabel, ctaHref, meta }: HeroProps) 
             </Link>
             {meta && meta.length > 0 ? (
               <ul className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink/70 sm:text-sm">
-                {meta.map((item, index) => (
-                  <li key={item} className="flex items-center gap-3">
-                    {index > 0 ? (
-                      <span aria-hidden="true" className="text-ink/30">
-                        ・
-                      </span>
-                    ) : null}
-                    <span>{item}</span>
+                {meta.map((item) => (
+                  <li
+                    key={item}
+                    className="before:mr-3 before:text-ink/30 before:content-['・'] first:before:content-none"
+                  >
+                    {item}
                   </li>
                 ))}
               </ul>
@@ -63,7 +61,6 @@ export function Hero({ headline, subCopy, ctaLabel, ctaHref, meta }: HeroProps) 
             aria-hidden="true"
             width={400}
             height={400}
-            priority
             className="h-auto w-full max-w-[360px]"
           />
         </div>

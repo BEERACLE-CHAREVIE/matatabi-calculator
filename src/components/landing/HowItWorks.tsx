@@ -1,5 +1,4 @@
 import { ArrowDown, ArrowRight } from "lucide-react";
-import { Fragment } from "react";
 
 export type Step = {
   stepNumber: number;
@@ -31,28 +30,27 @@ export function HowItWorks({ steps }: HowItWorksProps) {
         </div>
         <ol className="flex flex-col items-stretch gap-6 sm:flex-row sm:items-start">
           {steps.map((step, index) => (
-            <Fragment key={step.stepNumber}>
-              <li className="flex flex-1 flex-col gap-3 sm:items-start">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-ink text-xl font-bold text-canvas">
-                  {step.stepNumber}
-                </div>
-                <h3 className="text-base font-semibold leading-snug text-ink sm:text-lg">
-                  {step.title}
-                </h3>
-                <p className="text-sm leading-relaxed text-ink/75">
-                  {step.body}
-                </p>
-              </li>
+            <li
+              key={step.stepNumber}
+              className="relative flex flex-1 flex-col gap-3 sm:items-start"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-ink text-xl font-bold text-canvas">
+                {step.stepNumber}
+              </div>
+              <h3 className="text-base font-semibold leading-snug text-ink sm:text-lg">
+                {step.title}
+              </h3>
+              <p className="text-sm leading-relaxed text-ink/75">{step.body}</p>
               {index < steps.length - 1 ? (
-                <li
+                <span
                   aria-hidden="true"
-                  className="flex shrink-0 items-center justify-center text-line sm:pt-5"
+                  className="mt-2 flex w-full items-center justify-center text-line sm:absolute sm:right-0 sm:top-5 sm:mt-0 sm:w-auto sm:translate-x-1/2"
                 >
                   <ArrowDown className="h-6 w-6 sm:hidden" />
                   <ArrowRight className="hidden h-6 w-6 sm:block" />
-                </li>
+                </span>
               ) : null}
-            </Fragment>
+            </li>
           ))}
         </ol>
       </div>
