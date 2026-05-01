@@ -41,7 +41,9 @@ yarn-error.log*
 
 # Cloudflare Pages / Wrangler (used from Issue #11)
 .wrangler/
+.dev.vars
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+node_modules

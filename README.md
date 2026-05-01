@@ -7,7 +7,7 @@
 - Next.js 14 (App Router)
 - TypeScript
 - Tailwind CSS
-- Cloudflare Pages（Issue #11 で設定予定）
+- Cloudflare Pages（静的エクスポート + GitHub 連携）
 
 ## セットアップ
 
@@ -38,8 +38,9 @@ npm run dev
 
 ```bash
 npm run build
-npm start
 ```
+
+`output: 'export'` を有効化しているため、ビルド成果物はリポジトリ直下の `out/` に静的サイトとして生成されます。`next start` は使用しません。ローカルで成果物を確認したい場合は `npx serve out` 等の静的サーバを利用してください。
 
 ### 型検証・Lint
 
@@ -47,6 +48,32 @@ npm start
 npm run typecheck
 npm run lint
 ```
+
+## デプロイ
+
+本リポジトリは Cloudflare Pages 上で自動デプロイされます（Issue #11 で設定）。
+
+### ブランチ運用
+
+- 本番ブランチ: `main`（push で自動的にプロダクションデプロイ）
+- プレビュー: `main` 以外のすべてのブランチで自動的にユニーク URL が発行されます。`develop` のプレビュー URL を擬似ステージングとして利用してください。
+
+### Cloudflare Pages 側の設定値
+
+| 設定項目 | 値 |
+| --- | --- |
+| Framework preset | Next.js (Static HTML Export) |
+| Build command | `npm run build` |
+| Build output directory | `out` |
+| Production branch | `main` |
+| Node.js version | `20`（環境変数 `NODE_VERSION=20`） |
+
+### 必須環境変数
+
+`NEXT_PUBLIC_SITE_URL` を Production / Preview それぞれに設定してください。`src/app/layout.tsx` の `metadataBase` がこの値を参照し、OG / Twitter Card の絶対 URL を生成します。
+
+- Production: 本番ドメイン確定までは Cloudflare Pages が発行する `*.pages.dev` URL を暫定値として設定
+- Preview: プレビュー用 `*.pages.dev` URL（プロジェクト固定 URL）
 
 ## ドキュメント
 
