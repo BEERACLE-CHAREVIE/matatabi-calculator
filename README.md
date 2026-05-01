@@ -107,6 +107,7 @@ npm run lint
 - 採用ツール: **Cloudflare Web Analytics**（Cookie 不発行、SPA 遷移は自動検知、LCP 影響極小）
 - 計測対象: 当面は PV / Web Vitals / 平均滞在時間のみ。CF は任意イベント未対応のため、診断完了率・PDF ダウンロード数等のドメインイベントは未計測
 - ラッパ: `src/lib/analytics.ts` に `trackEvent` / `trackPageView` を no-op スタブとして配置。後続 Issue (#2 / #3 / #4 / #5) でフックを差し込む際の API 入口。GA4 併用が決まった場合は内部実装のみ差し替え
+- 計測有効判定: `isAnalyticsEnabled`（同モジュールから export）は環境変数の有無で決まる boolean。後続 Issue でガード条件付きの副作用（重い計測処理の skip 等）を書きたい場合の判定用
 - オン／オフ: `NEXT_PUBLIC_CF_BEACON_TOKEN` の有無で分岐。Preview / ローカルは送信オフ
 - 法令対応: 電気通信事業法 外部送信規律はプライバシーポリシー §5 への記載で対応（バナー不採用）。`docs/legal/REASONING.md` 参照
 

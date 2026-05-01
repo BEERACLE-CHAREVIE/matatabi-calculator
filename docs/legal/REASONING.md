@@ -29,7 +29,7 @@
 | サーバ機能（`cookies()` / `headers()` / Server Actions / Route Handlers / SSR fetch） | **未使用** | Issue #11 プラン §B |
 | アクセス解析タグ | **Cloudflare Web Analytics 導入済み**（Cookie 不発行、Issue #14 で採択） | `src/app/layout.tsx`（CF beacon 設置）、`src/lib/analytics.ts`（trackEvent ラッパ） |
 | お問い合わせフォーム / メール送信機能 | **なし**（PDF 連絡先は表示のみ） | `docs/spec/pdf-report.md §13.5` |
-| Cookie の能動的設置 | **なし**（Cloudflare の運用 Cookie `__cf_bm` 等はサービス由来ではない） | Issue #11 プラン §B |
+| Cookie の能動的設置 | **なし**（Cloudflare の運用 Cookie `__cf_bm` 等はサービス由来ではない。Cloudflare Web Analytics も Cookie 不発行） | Issue #11 プラン §B、Issue #14 |
 
 Issue #14 着手後の更新点として、Cloudflare Web Analytics による IP・UA・リファラ・ページパス等の閲覧情報の取得が開始される。本ツールは Cookie その他のトラッカーを設置しないため、個人関連情報の取得経路は閲覧情報に限定される。プライバシーポリシー §1（取得する情報）および §5（Cookie 等の利用）は本事実認定に合わせて更新済み。
 

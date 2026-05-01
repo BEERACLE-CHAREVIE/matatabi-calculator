@@ -97,8 +97,7 @@ export default function PrivacyPage() {
           <h2 className="text-lg font-semibold sm:text-xl">5. Cookie 等の利用</h2>
           <p className="mt-2 text-sm leading-relaxed sm:text-base">
             当社は、本サービスのアクセス解析として Cloudflare Web Analytics
-            を利用しています。本ツールは Cookie
-            その他のトラッカーを設置せず、第 1
+            を利用します。本ツールは Cookie その他のトラッカーを設置せず、第 1
             項に定める閲覧情報のみを集計目的で取得します。
           </p>
           <p className="mt-2 text-sm leading-relaxed sm:text-base">
