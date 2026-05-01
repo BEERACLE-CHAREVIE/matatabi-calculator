@@ -51,7 +51,7 @@ npm run lint
 
 ## デプロイ
 
-本リポジトリは Cloudflare Pages のダッシュボードで GitHub 連携を構成済みで、push をトリガーに自動デプロイされます。
+本リポジトリは Cloudflare Pages のダッシュボードで GitHub 連携を構成済みで、push をトリガーに自動デプロイされます。本番 URL は `https://roi.nekonimatatabi.com`（Apex を正規ホストとして運用）。
 
 ### ブランチ運用
 
@@ -72,8 +72,15 @@ npm run lint
 
 `NEXT_PUBLIC_SITE_URL` を Production / Preview それぞれに設定してください。`src/app/layout.tsx` の `metadataBase` がこの値を参照し、OG / Twitter Card の絶対 URL を生成します。
 
-- Production: 本番ドメイン確定までは Cloudflare Pages が発行する `*.pages.dev` URL を暫定値として設定
+- Production: `https://roi.nekonimatatabi.com`
 - Preview: プレビュー用 `*.pages.dev` URL（プロジェクト固定 URL）
+
+### 独自ドメイン運用方針
+
+- 正規ホスト: Apex (`roi.nekonimatatabi.com`)。将来 `www.roi.nekonimatatabi.com` を併設する場合は Cloudflare の Redirect Rule で 301 を返す方針（現時点では併設なし）
+- SSL/TLS モード: **Full (strict)**、Always Use HTTPS = On、Automatic HTTPS Rewrites = On、Minimum TLS Version = 1.2
+- HSTS: 段階導入。初期 `max-age=300`（5 分）で開始し、1〜2 週間の安定運用後に `max-age=31536000` + `includeSubDomains` へ引き上げる（Preload 申請は別 Issue で扱う）
+- 詳細な Cloudflare ダッシュボード設定値は Issue #12 のコメントを参照
 
 ## ドキュメント
 

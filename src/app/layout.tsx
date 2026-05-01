@@ -17,7 +17,7 @@ const notoSansJp = Noto_Sans_JP({
 });
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://matatabi-calculator.example";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://roi.nekonimatatabi.com";
 const SITE_NAME = "またたび計算機";
 const SITE_DESCRIPTION = "中小企業向け ROI 診断アプリ「またたび計算機」";
 
