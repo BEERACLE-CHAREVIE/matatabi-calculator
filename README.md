@@ -75,6 +75,13 @@ npm run lint
 - Production: `https://roi.nekonimatatabi.com`
 - Preview: プレビュー用 `*.pages.dev` URL（プロジェクト固定 URL）
 
+### 任意環境変数（アクセス解析）
+
+`NEXT_PUBLIC_CF_BEACON_TOKEN` を **Production スコープのみ** に設定してください。Cloudflare Web Analytics の beacon タグ（`src/app/layout.tsx`）が本値を参照し、未設定時は `<Script>` を出力しません。
+
+- Production: Cloudflare ダッシュボード → Web Analytics で発行された token
+- Preview / ローカル: **未設定**（送信オフ）
+
 ### 独自ドメイン運用方針
 
 - 正規ホスト: Apex (`roi.nekonimatatabi.com`)。将来 `www.roi.nekonimatatabi.com` を併設する場合は Cloudflare の Redirect Rule で 301 を返す方針（現時点では併設なし）
@@ -91,9 +98,17 @@ npm run lint
 - 警告コピー仕様: [`docs/spec/warning-copy.md`](./docs/spec/warning-copy.md) (Issue #4)
 - PDF レポート仕様: [`docs/spec/pdf-report.md`](./docs/spec/pdf-report.md) (Issue #5)
 - 実施順プラン: [`.claude/issue-order.md`](./.claude/issue-order.md)
-- 法務判断記録: [`docs/legal/REASONING.md`](./docs/legal/REASONING.md) (Issue #13)
-- プライバシーポリシー（ドラフト）: [`docs/legal/privacy.md`](./docs/legal/privacy.md) (Issue #13)
+- 法務判断記録: [`docs/legal/REASONING.md`](./docs/legal/REASONING.md) (Issue #13 / Issue #14)
+- プライバシーポリシー（ドラフト）: [`docs/legal/privacy.md`](./docs/legal/privacy.md) (Issue #13 / Issue #14)
 - 利用規約（ドラフト）: [`docs/legal/terms.md`](./docs/legal/terms.md) (Issue #13)
+
+## アクセス解析
+
+- 採用ツール: **Cloudflare Web Analytics**（Cookie 不発行、SPA 遷移は自動検知、LCP 影響極小）
+- 計測対象: 当面は PV / Web Vitals / 平均滞在時間のみ。CF は任意イベント未対応のため、診断完了率・PDF ダウンロード数等のドメインイベントは未計測
+- ラッパ: `src/lib/analytics.ts` に `trackEvent` / `trackPageView` を no-op スタブとして配置。後続 Issue (#2 / #3 / #4 / #5) でフックを差し込む際の API 入口。GA4 併用が決まった場合は内部実装のみ差し替え
+- オン／オフ: `NEXT_PUBLIC_CF_BEACON_TOKEN` の有無で分岐。Preview / ローカルは送信オフ
+- 法令対応: 電気通信事業法 外部送信規律はプライバシーポリシー §5 への記載で対応（バナー不採用）。`docs/legal/REASONING.md` 参照
 
 ## ライセンス
 

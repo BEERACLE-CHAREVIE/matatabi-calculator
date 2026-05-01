@@ -27,25 +27,25 @@
 | 入力値の永続化（localStorage / Cookie 等） | **なし**（将来拡張は明示的にスコープ外） | `docs/spec/input-form.md §10` |
 | PDF 生成のサードパーティ通信 | **なし**（jsPDF + html2canvas、`useCORS=false`） | `docs/spec/pdf-report.md §2` |
 | サーバ機能（`cookies()` / `headers()` / Server Actions / Route Handlers / SSR fetch） | **未使用** | Issue #11 プラン §B |
-| アクセス解析タグ | **未設置**（Issue #14 で別途検討） | `working/plans/issue-12-custom-domain-setup_260501161036.md` 設計上の考慮点 H |
+| アクセス解析タグ | **Cloudflare Web Analytics 導入済み**（Cookie 不発行、Issue #14 で採択） | `src/app/layout.tsx`（CF beacon 設置）、`src/lib/analytics.ts`（trackEvent ラッパ） |
 | お問い合わせフォーム / メール送信機能 | **なし**（PDF 連絡先は表示のみ） | `docs/spec/pdf-report.md §13.5` |
 | Cookie の能動的設置 | **なし**（Cloudflare の運用 Cookie `__cf_bm` 等はサービス由来ではない） | Issue #11 プラン §B |
 
-上記より、**現時点で当社が能動的に取得・送信・保存する個人情報は存在しない**。プライバシーポリシーの「取得情報」節は、現状を反映した最小構成と、Issue #14 採用時の追記欄を併記する形でドラフトする。
+Issue #14 着手後の更新点として、Cloudflare Web Analytics による IP・UA・リファラ・ページパス等の閲覧情報の取得が開始される。本ツールは Cookie その他のトラッカーを設置しないため、個人関連情報の取得経路は閲覧情報に限定される。プライバシーポリシー §1（取得する情報）および §5（Cookie 等の利用）は本事実認定に合わせて更新済み。
 
 ## 法令適用範囲（要レビュー）
 
 本判断は以下の法令を念頭に置く（最終判断は法務レビューで確定）:
 
 - **個人情報保護法（日本、令和 4 年改正版）**: 入力値（金額・人数）は通常、特定個人を識別しないため「個人情報」に該当しない可能性が高いが、IP / Cookie ID は個人関連情報として整理が必要（GA4 採用時）
-- **電気通信事業法（外部送信規律、令和 5 年改正）**: 第三者送信を伴う Web サービスに通知義務。GA4 / Cloudflare Web Analytics いずれも該当する可能性があるため、Issue #14 着手時に判定
+- **電気通信事業法（外部送信規律、令和 5 年改正）**: Issue #14 で判定済み。Cloudflare Web Analytics を採用し、配信元と一体のため「外部送信」性が弱いと整理。保守的にプライバシーポリシー §5（Cookie 等の利用）への記載で通知義務を満たす方針を採り、初回バナーは UX 阻害を避けるため不採用とした。GA4 へ切替・併用する場合は本判断を再評価する
 - **GDPR / CCPA**: B2B 中小企業向けで主たる利用者は国内想定だが、Cloudflare 経由で技術的にはグローバル配信される。EEA / カリフォルニア州からのアクセスへの考慮は法務レビュー判断事項
 
 ## 再評価トリガ
 
 以下のいずれかが発生した時点で、本判断および関連ドラフトを再評価する:
 
-- [ ] Issue #14（アクセス解析）着手 — GA4 / Cloudflare Web Analytics の採用方針確定時に「取得情報」節を更新
+- [x] Issue #14（アクセス解析）着手 — Cloudflare Web Analytics を採択。プライバシーポリシー §1・§5、本事実認定表、法令適用範囲節を更新済み
 - [ ] `docs/spec/input-form.md §10` の入力値永続化（localStorage 保存）が実装された時点
 - [ ] お問い合わせフォーム / メール送信 API の追加
 - [ ] PDF レポートに顧客名入力（`docs/spec/pdf-report.md §6.3`）が追加された時点
