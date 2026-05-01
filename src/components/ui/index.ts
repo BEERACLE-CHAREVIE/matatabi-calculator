@@ -6,3 +6,5 @@ export { Footer } from "./Footer";
 export type { FooterProps } from "./Footer";
 export { Accordion } from "./Accordion";
 export type { AccordionItem, AccordionProps } from "./Accordion";
+export { Header } from "./Header";
+export type { HeaderProps, HeaderNavCtaConfig } from "./Header";

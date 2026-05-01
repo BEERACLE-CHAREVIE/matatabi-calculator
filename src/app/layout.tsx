@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_JP } from "next/font/google";
 import Script from "next/script";
 import { Footer } from "@/components/ui/Footer";
+import { Header } from "@/components/ui/Header";
 import "./globals.css";
 
 const CF_BEACON_TOKEN = process.env.NEXT_PUBLIC_CF_BEACON_TOKEN;
@@ -79,6 +80,7 @@ export default function RootLayout({
         className={`${inter.variable} ${notoSansJp.variable} bg-canvas text-ink antialiased`}
       >
         <div className="flex min-h-screen flex-col">
+          <Header />
           <div className="flex-1">{children}</div>
           <Footer />
         </div>
