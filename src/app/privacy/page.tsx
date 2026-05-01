@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 sm:px-8">
-      <article className="prose-legal text-ink">
+      <article className="text-ink">
         <p className="mb-6 rounded-md border border-line/60 bg-line/10 p-3 text-sm text-ink/80">
           ⚠️ 本ドキュメントはドラフトです。最終版は法務レビュー後に確定します。
         </p>

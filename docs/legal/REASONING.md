@@ -58,6 +58,13 @@
 - 公開ページ: `/privacy`（`src/app/privacy/page.tsx`）, `/terms`（`src/app/terms/page.tsx`）
 - フッター導線: `src/components/ui/Footer.tsx`（全ページ共通）
 
+### Markdown ソースと TSX 転記版の二層構造の運用ルール
+
+- **ソース・オブ・トゥルース**: `docs/legal/privacy.md` / `docs/legal/terms.md`（Markdown）
+- **公開ページ**: `src/app/privacy/page.tsx` / `src/app/terms/page.tsx`（手動転記）
+- **改定履歴**: Markdown 側のみで管理する（「制定・改定履歴」節）。TSX 側の公開ページは制定日（最終更新日）のみを末尾に表示する設計とする。理由は、改定履歴を全件公開ページに表示するとユーザー体験を損なうため。改定通知は本サービス上での告知（バナー等、必要に応じて別 Issue で実装）または本ポリシー本文の冒頭への注記で代替する
+- **同時更新の原則**: 法務レビュー指摘で文言が変わるときは、必ず Markdown と該当する TSX を **同一コミット内で同時に更新** する。`git diff` で乖離がないか目視確認すること
+
 ## 法務レビュー結果
 
 本節は法務レビュー完了後に追記する。
