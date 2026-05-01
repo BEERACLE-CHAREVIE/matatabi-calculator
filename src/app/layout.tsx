@@ -23,25 +23,44 @@ const notoSansJp = Noto_Sans_JP({
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://roi.nekonimatatabi.com";
 const SITE_NAME = "またたび計算機";
-const SITE_DESCRIPTION = "中小企業向け ROI 診断アプリ「またたび計算機」";
+const SITE_DEFAULT_TITLE = "またたび計算機 | IT コスト診断・ROI 試算ツール";
+const SITE_DESCRIPTION =
+  "中小企業の経営者向け ROI 診断ツール。月額ベンダー費用や改修費、手作業時間を 5 つの質問に答えるだけで、3 年間で止血できる IT コストと取り逃している利益を試算。結果は PDF で出力でき、登録不要・完全無料でご利用いただけます。";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: SITE_NAME,
+  title: {
+    default: SITE_DEFAULT_TITLE,
+    template: "%s | またたび計算機",
+  },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
+  keywords: ["ROI", "IT コスト削減", "AI 駆動開発", "ベンダー依存", "中小企業"],
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+    },
+  },
   openGraph: {
     type: "website",
     url: "/",
     siteName: SITE_NAME,
-    title: SITE_NAME,
+    title: SITE_DEFAULT_TITLE,
     description: SITE_DESCRIPTION,
     locale: "ja_JP",
   },
   twitter: {
     card: "summary_large_image",
-    title: SITE_NAME,
+    title: SITE_DEFAULT_TITLE,
     description: SITE_DESCRIPTION,
+    images: ["/opengraph-image.png"],
   },
 };
 

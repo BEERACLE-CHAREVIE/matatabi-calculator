@@ -1,116 +1,148 @@
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import type { Metadata } from "next";
+import {
+  AlertTriangle,
+  Calculator,
+  Coins,
+  FileDown,
+  Hourglass,
+  TrendingDown,
+} from "lucide-react";
+import {
+  ClosingCta,
+  FAQ,
+  Hero,
+  HowItWorks,
+  ProblemSection,
+  ValuePropSection,
+} from "@/components/landing";
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    url: "/",
+  },
+};
+
+const HERO_HEADLINE = "IT コストが減らない理由は、もう数字で見えています。";
+const HERO_SUBCOPY =
+  "ベンダー費用、改修費、待ち時間。あなたの会社で発生している『止血できる金額』と『取り逃している利益』を、5 つの質問だけで可視化します。";
+const HERO_META = ["所要 約 5 分", "完全無料", "登録不要", "ブラウザ内で完結"];
+
+const PROBLEMS = [
+  {
+    icon: <Coins className="h-5 w-5" aria-hidden="true" />,
+    title: "毎月のベンダー費、何に使われているのか説明できない",
+    body: "見積書の根拠が不明瞭なまま、改修のたびに数十万円が出ていく状態に違和感を覚えていませんか。",
+  },
+  {
+    icon: <Hourglass className="h-5 w-5" aria-hidden="true" />,
+    title: "ちょっとした更新が、いつも 1 ヶ月待ち",
+    body: "軽微な改修ですら数週間〜数ヶ月待ち。スピードを失った時間こそが、最大の機会損失です。",
+  },
+  {
+    icon: <AlertTriangle className="h-5 w-5" aria-hidden="true" />,
+    title: "内製化したいが、何から始めるかわからない",
+    body: "AI 駆動開発の選択肢は知っているものの、自社の IT コストに対する効果を数字で示せずにいませんか。",
+  },
+];
+
+const VALUES = [
+  {
+    icon: <Calculator className="h-6 w-6" aria-hidden="true" />,
+    title: "3 年間で『止血』できる金額を試算",
+    body: "ベンダー費用と改修費を入力するだけで、AI 駆動開発で削減できる 3 年間のコストが即座に算出されます。",
+  },
+  {
+    icon: <TrendingDown className="h-6 w-6" aria-hidden="true" />,
+    title: "手作業で失っている『利益』を可視化",
+    body: "人手で行っている定型業務を時給換算し、年間の利益創出ポテンシャルを数値化します。",
+  },
+  {
+    icon: <FileDown className="h-6 w-6" aria-hidden="true" />,
+    title: "その場で PDF レポートをダウンロード",
+    body: "診断結果は A4 1 枚の PDF として出力。社内稟議や経営会議の資料として、そのまま使えます。",
+  },
+];
+
+const STEPS = [
+  {
+    stepNumber: 1,
+    title: "5 つの質問に答える",
+    body: "月額ベンダー費用 / 改修費用 / 手作業人数 / 更新待ち期間 / 内製化状況。",
+  },
+  {
+    stepNumber: 2,
+    title: "結果ダッシュボードを確認",
+    body: "3 年間のトータルインパクト、止血額、年間利益創出を一画面で確認できます。",
+  },
+  {
+    stepNumber: 3,
+    title: "PDF レポートをダウンロード",
+    body: "経営会議用の A4 1 枚レポートを即時生成。ブラウザ内で完結します。",
+  },
+];
+
+const FAQS = [
+  {
+    id: "faq-data-privacy",
+    question: "入力したデータはどこかに送信されますか？",
+    answer:
+      "いいえ。すべてお使いのブラウザ内で計算され、当社サーバーや第三者への送信は一切行いません。詳しくはプライバシーポリシーをご確認ください。",
+  },
+  {
+    id: "faq-accuracy",
+    question: "試算結果はどのくらい正確ですか？",
+    answer:
+      "業界標準値（時給 2,500 円、1 日 2 時間、月 20 営業日、年 3 回改修など）に基づく簡易試算です。実際の効果を保証するものではありませんが、コスト構造の妥当性を判断する初期指標として広くお使いいただけます。",
+  },
+  {
+    id: "faq-time",
+    question: "所要時間はどのくらいですか？",
+    answer:
+      "5 つの質問に答えるだけで完了し、目安は 3〜5 分程度です。途中で戻って数値を修正することもできます。",
+  },
+  {
+    id: "faq-pdf-usage",
+    question: "PDF レポートはどのような場面で使えますか？",
+    answer:
+      "社内稟議、経営会議、IT 投資の見直し提案、ベンダーとの交渉材料など、決裁者に数字でメリットを示す必要があるあらゆる場面でご活用いただけます。",
+  },
+  {
+    id: "faq-mobile",
+    question: "スマートフォンやタブレットでも使えますか？",
+    answer:
+      "はい。商談先のタブレットからでも快適にお使いいただけるよう、レスポンシブ対応しています。",
+  },
+  {
+    id: "faq-pricing",
+    question: "利用に費用はかかりますか？登録は必要ですか？",
+    answer:
+      "完全無料、登録不要です。サイトを開いてすぐに診断を開始できます。",
+  },
+];
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-10 p-8">
-      <section className="flex flex-col items-center gap-4 text-center">
-        <h1 className="text-3xl font-bold sm:text-4xl">またたび計算機</h1>
-        <p className="text-sm sm:text-base">
-          現在準備中です。今しばらくお待ちください。
-        </p>
-        <p className="text-sm text-ink/80">
-          The quick brown fox jumps over the lazy cat. 1234567890
-        </p>
-      </section>
-
-      {/* TODO: UI 本実装時に削除（Issue #2 / #3 / #4 / #5） */}
-      <section aria-label="カラートークン プレビュー" className="w-full max-w-xl">
-        <h2 className="mb-3 text-sm font-medium">Color tokens</h2>
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <li className="flex flex-col items-center gap-2">
-            <span className="h-16 w-full rounded border border-line bg-canvas" />
-            <span className="text-xs">canvas / #F8F6F2</span>
-          </li>
-          <li className="flex flex-col items-center gap-2">
-            <span className="h-16 w-full rounded bg-ink" />
-            <span className="text-xs">ink / #72665B</span>
-          </li>
-          <li className="flex flex-col items-center gap-2">
-            <span className="h-16 w-full rounded bg-line" />
-            <span className="text-xs">line / #BEB5AA</span>
-          </li>
-          <li className="flex flex-col items-center gap-2">
-            <span className="h-16 w-full rounded bg-accent" />
-            <span className="text-xs">accent / #9CAEB8</span>
-          </li>
-        </ul>
-      </section>
-
-      {/* TODO: UI 本実装時に削除（Issue #2 / #3 / #4 / #5） */}
-      <section aria-label="角丸 / シャドウ プレビュー" className="w-full max-w-xl">
-        <h2 className="mb-3 text-sm font-medium">Radius &amp; Shadow tokens</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <div className="rounded-md border border-line/50 bg-canvas p-4 text-center text-xs">
-            rounded-md / 6px
-          </div>
-          <div className="rounded-xl border border-line/50 bg-canvas p-4 text-center text-xs">
-            rounded-xl / 12px
-          </div>
-          <div className="rounded-2xl border border-line/50 bg-canvas p-4 text-center text-xs">
-            rounded-2xl / 16px
-          </div>
-          <div className="rounded-xl bg-canvas p-4 text-center text-xs shadow-card">
-            shadow-card
-          </div>
-          <div className="rounded-xl bg-canvas p-4 text-center text-xs shadow-card-hover">
-            shadow-card-hover
-          </div>
-          <div className="rounded-xl bg-canvas p-4 text-center text-xs shadow-floating">
-            shadow-floating
-          </div>
-        </div>
-      </section>
-
-      {/* TODO: UI 本実装時に削除（Issue #2 / #3 / #4 / #5） */}
-      <section aria-label="タイポグラフィ補強 プレビュー" className="w-full max-w-xl">
-        <h2 className="mb-3 text-sm font-medium">Typography tokens</h2>
-        <div className="rounded-xl border border-line/50 bg-canvas p-4 text-center">
-          <span className="text-xs font-bold uppercase tracking-warning text-ink">
-            CRITICAL OPPORTUNITY LOSS
-          </span>
-          <p className="mt-1 text-[10px] text-ink/60">
-            tracking-warning / 0.06em（Issue #4 で WarningBanner が消費予定）
-          </p>
-        </div>
-      </section>
-
-      {/* TODO: UI 本実装時に削除（Issue #2 / #3 / #4 / #5） */}
-      <section aria-label="Button プレビュー" className="w-full max-w-xl">
-        <h2 className="mb-3 text-sm font-medium">Button (variant × size)</h2>
-        <div className="flex flex-wrap items-center gap-3">
-          <Button variant="primary" size="sm">
-            Primary sm
-          </Button>
-          <Button variant="primary" size="md">
-            Primary md
-          </Button>
-          <Button variant="primary" size="lg">
-            Primary lg
-          </Button>
-          <Button variant="secondary">Secondary</Button>
-          <Button variant="ghost">Ghost</Button>
-          <Button disabled>Disabled</Button>
-        </div>
-      </section>
-
-      {/* TODO: UI 本実装時に削除（Issue #2 / #3 / #4 / #5） */}
-      <section aria-label="Card プレビュー" className="w-full max-w-xl">
-        <h2 className="mb-3 text-sm font-medium">Card</h2>
-        <Card>
-          <h3 className="mb-2 text-base font-semibold">Card title</h3>
-          <p className="text-sm text-ink/80">
-            rounded-xl / border-line/50 / shadow-card / p-6 がデフォルト。
-            モバイルで padding を縮める場合は className=&quot;p-4 sm:p-6&quot; を渡す。
-          </p>
-          <div className="mt-4 flex gap-2">
-            <Button size="sm">アクション</Button>
-            <Button variant="ghost" size="sm">
-              サブ
-            </Button>
-          </div>
-        </Card>
-      </section>
+    <main className="flex flex-col">
+      <Hero
+        headline={HERO_HEADLINE}
+        subCopy={HERO_SUBCOPY}
+        ctaLabel="いますぐ計算を始める"
+        ctaHref="/calculate"
+        meta={HERO_META}
+      />
+      <ProblemSection items={PROBLEMS} />
+      <ValuePropSection items={VALUES} />
+      <HowItWorks steps={STEPS} />
+      <FAQ items={FAQS} />
+      <ClosingCta
+        headline="数字を、味方にしませんか。"
+        body="3 年後の IT コストは、今日の判断で変わります。まずは 5 分の診断から。"
+        ctaLabel="5 分で診断する"
+        ctaHref="/calculate"
+      />
     </main>
   );
 }

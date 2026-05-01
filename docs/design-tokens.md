@@ -139,7 +139,7 @@ a11y のベースラインとして 2 段構えで運用する。
 
 | variant | クラス | 用途 |
 |---|---|---|
-| `primary` | `bg-accent text-canvas hover:opacity-90` | CTA |
+| `primary` | `bg-ink text-canvas hover:opacity-90` | CTA（WCAG AA 4.5:1 適合、§10 参照） |
 | `secondary` | `border border-line bg-canvas text-ink hover:bg-line/30` | 補助 |
 | `ghost` | `bg-transparent text-ink hover:bg-line/20` | カード内サブアクション |
 
@@ -204,7 +204,7 @@ export function cn(
 | `boxShadow.card` / `card-hover` / `floating` の rgba 数値 | **暫定** | 実 UI が並んだ際の見え方で再調整余地あり。再調整は本 Issue 完了後の Issue #2 / #3 PR の中で「気付いたら微調整」運用 |
 | `letterSpacing.warning` = 0.06em | 暫定（中央値） | spec の 0.05em〜0.08em 範囲、実装で判断 |
 | ringColor / ringWidth / ringOffsetColor の DEFAULT | 確定 | accent #9CAEB8 / 2px / canvas #F8F6F2 |
-| Button primary のコントラスト比（accent on canvas text） | **要検討** | WCAG AA 不適合の可能性あり（約 1.8:1）。プレビューで実物確認後、(a) `text-ink` への変更 (b) `bg-ink` への切替 (c) Issue #22 のパレット再調整、のいずれかを後続 Issue で判断 |
+| Button primary のコントラスト比 | 確定（Issue #34） | `bg-ink text-canvas`（#72665B on #F8F6F2 ≈ 5.0:1）で WCAG AA を満たす。accent on canvas text の約 1.8:1 を回避するため (b) `bg-ink` への切替を採用。accent は引き続き focus-visible リング / 装飾アイコン / リンク文字色として運用 |
 | spec ファイル（`docs/spec/result-dashboard.md` 等）の旧パレット参照 | 未対応 | Issue #22 で別途置換予定。後続実装は本 §2 のロールに読み替えて使う |
 | PDF 内 (`PdfDashboard`) で `shadow-card` を使うか | 未確定 | html2canvas のラスタライズで濁る可能性。Issue #5 実装時に `shadow-none` 運用の判断余地を残す |
 
