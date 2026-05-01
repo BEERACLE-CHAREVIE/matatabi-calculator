@@ -1,0 +1,35 @@
+# 設計根拠: docs/security/jspdf-vulnerabilities.md §6
+# 関連 Issue: #24
+name: security-audit
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+  schedule:
+    # 毎週月曜 09:00 JST 相当（00:00 UTC）。新規 GHSA を遅くとも 7 日以内に検知する目的。
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit (critical 以上のみブロック)
+        # high / moderate は到達不能判定済み（docs/security/jspdf-vulnerabilities.md §2）
+        # 現状 critical 1 件（GHSA-f8cm-6447-x5h2）も §2.1 で到達不能だが、本ジョブは
+        # 「将来の新規 critical を検知する」目的で赤化を許容する（同 §6.2 参照）
+        run: npm audit --audit-level=critical

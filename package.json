@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "audit": "npm audit",
+    "audit:critical": "npm audit --audit-level=critical"
   },
   "engines": {
     "node": ">=20.0.0"
