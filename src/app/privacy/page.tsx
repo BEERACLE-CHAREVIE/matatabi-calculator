@@ -24,18 +24,25 @@ export default function PrivacyPage() {
         <section className="mt-8">
           <h2 className="text-lg font-semibold sm:text-xl">1. 取得する情報</h2>
           <p className="mt-2 text-sm leading-relaxed sm:text-base">
-            本サービスは、現時点においてユーザーが本サービスのフォームに入力した情報（月額ベンダー費用、改修費用、手作業人数、更新待ち期間、内製化状況の
+            本サービスは、ユーザーが本サービスのフォームに入力した情報（月額ベンダー費用、改修費用、手作業人数、更新待ち期間、内製化状況の
             5
             項目）を、ユーザーのブラウザ内でのみ計算処理し、当社サーバへの送信・保存・第三者提供は一切行いません。
           </p>
           <p className="mt-2 text-sm leading-relaxed sm:text-base">
-            ただし、以下の情報については将来的に取得する可能性があり、その場合は本ポリシーを改定したうえで取得を開始します。
+            加えて、本サービスの利用状況の把握のため、当社は以下の情報をアクセス解析サービス（Cloudflare
+            Web Analytics）を通じて取得します。
           </p>
           <ul className="mt-2 list-disc pl-6 text-sm leading-relaxed sm:text-base">
             <li>
-              アクセス解析サービスを通じて取得する Cookie 識別子・IP
-              アドレス・閲覧履歴等の個人関連情報（<strong>現時点では未取得</strong>）
+              IP
+              アドレス、ユーザーエージェント、リファラ、ページパス、参照タイミング等の閲覧情報（Cloudflare
+              Web Analytics は Cookie その他のトラッカーを設置しません）
             </li>
+          </ul>
+          <p className="mt-2 text-sm leading-relaxed sm:text-base">
+            なお、以下の情報については将来的に取得する可能性があり、その場合は本ポリシーを改定したうえで取得を開始します。
+          </p>
+          <ul className="mt-2 list-disc pl-6 text-sm leading-relaxed sm:text-base">
             <li>
               お問い合わせフォーム等を通じて任意に提供される氏名・メールアドレス・所属組織等（<strong>現時点では当該機能なし</strong>）
             </li>
@@ -89,11 +96,12 @@ export default function PrivacyPage() {
         <section className="mt-8">
           <h2 className="text-lg font-semibold sm:text-xl">5. Cookie 等の利用</h2>
           <p className="mt-2 text-sm leading-relaxed sm:text-base">
-            当社は、現時点において本サービスにおいて Cookie
-            その他のトラッカーを能動的に設置していません。
+            当社は、本サービスのアクセス解析として Cloudflare Web Analytics
+            を利用します。本ツールは Cookie その他のトラッカーを設置せず、第 1
+            項に定める閲覧情報のみを集計目的で取得します。
           </p>
           <p className="mt-2 text-sm leading-relaxed sm:text-base">
-            ただし、本サービスは Cloudflare
+            なお、本サービスは Cloudflare
             のエッジネットワーク上で配信されるため、Cloudflare が運用上必要とする
             Cookie（<code>__cf_bm</code> 等のボット管理用 Cookie
             等）が設定される場合があります。これらは Cloudflare
