@@ -79,7 +79,7 @@
 
 - `docs/spec/pdf-report.md §3.1` で **html2canvas 主体方針** が確定: DOM → PNG ラスタライズ → jsPDF `addImage` で貼付。
 - `jsPDF.html()` は **本アプリで一切呼ばれない**（仕様確定）。
-- `jsPDF.html()` を呼ばない以上、`jspdf` 内部の `dompurify` 利用コードパスはモジュールがロードされても **実行経路に乗らないデッドコード** となる。
+- `dompurify` モジュール自体は `jspdf` の import 時に読み込まれるが、脆弱性が成立するのは `dompurify.sanitize()` の呼び出し時のみ。`sanitize()` は `jsPDF.html()` の内部実装からのみ起動されるため、`jsPDF.html()` を経由しない以上、**脆弱なコードパスは実行されない**。
 
 **判定**: `jsPDF.html()` を呼ばない実装契約を維持する限り、dompurify の脆弱なコードパスは実行されない。**到達不能**。
 
@@ -142,10 +142,10 @@
 
 Issue #5 の PR レビュー時に以下を必須チェック項目として適用する:
 
-- [ ] `pdf.save(filename)` の `filename` 引数が `buildPdfFilename()` の戻り値以外でない（§2.1）
-- [ ] `pdf.html(...)` の呼び出しが存在しない（grep で確認、§2.3）
-- [ ] `addImage` に渡す `imgData` が `html2canvas` 出力以外でない（§2.2）
-- [ ] フォーム入力値や URL クエリパラメータを直接 jspdf API に渡す箇所が存在しない（§2.2 / §2.3）
+- [ ] `pdf.save(filename)` の `filename` 引数が `buildPdfFilename()` の戻り値であること（§2.1）
+- [ ] `pdf.html(...)` を呼び出す実装が含まれないこと（grep で確認、§2.3）
+- [ ] `addImage` に渡す `imgData` が `html2canvas` 出力の dataURL であること（§2.2）
+- [ ] フォーム入力値や URL クエリパラメータを jspdf API に直接渡す実装が含まれないこと（§2.2 / §2.3）
 
 ## 8. 関連ファイル
 

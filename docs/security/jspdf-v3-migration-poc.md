@@ -41,8 +41,8 @@ pdf.save(options.filename);
 
 ### 2.3 `save(filename)`
 
-- v3.0.0 で **Path Traversal 修正** が入っている（GHSA-f8cm-6447-x5h2 の修正版が 4.0.0+ という `npm audit` 表示と矛盾するため、`[要検証]`）。
-- 内部サニタイズが追加されている可能性があり、テンプレート生成済みファイル名（`matatabi-roi-YYYYMMDD-HHmm.pdf`）はサニタイズの影響を受けない見込み。
+- Path Traversal の修正版は **`jspdf@4.0.0+`** に含まれる（GHSA-f8cm-6447-x5h2 の `fixAvailable.version: 4.2.1`、`docs/security/jspdf-vulnerabilities.md §1` 表 #1 と整合）。3.x 系には未バックポートと推定される。
+- 修正に伴って `save()` 内部にサニタイズが追加されている可能性があり、テンプレート生成済みファイル名（`matatabi-roi-YYYYMMDD-HHmm.pdf`）はサニタイズの影響を受けない見込み。
 - **書き直し不要の見込み**。
 
 ### 2.4 `html2canvas` との連携
