@@ -91,6 +91,9 @@ npm run lint
 - 警告コピー仕様: [`docs/spec/warning-copy.md`](./docs/spec/warning-copy.md) (Issue #4)
 - PDF レポート仕様: [`docs/spec/pdf-report.md`](./docs/spec/pdf-report.md) (Issue #5)
 - 実施順プラン: [`.claude/issue-order.md`](./.claude/issue-order.md)
+- 法務判断記録: [`docs/legal/REASONING.md`](./docs/legal/REASONING.md) (Issue #13)
+- プライバシーポリシー（ドラフト）: [`docs/legal/privacy.md`](./docs/legal/privacy.md) (Issue #13)
+- 利用規約（ドラフト）: [`docs/legal/terms.md`](./docs/legal/terms.md) (Issue #13)
 
 ## ライセンス
 

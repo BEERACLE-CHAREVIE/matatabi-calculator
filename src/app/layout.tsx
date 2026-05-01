@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_JP } from "next/font/google";
+import { Footer } from "@/components/ui/Footer";
 import "./globals.css";
 
 const inter = Inter({
@@ -55,7 +56,10 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${notoSansJp.variable} bg-canvas text-ink antialiased`}
       >
-        {children}
+        <div className="flex min-h-screen flex-col">
+          <div className="flex-1">{children}</div>
+          <Footer />
+        </div>
       </body>
     </html>
   );
