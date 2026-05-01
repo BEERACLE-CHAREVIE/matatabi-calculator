@@ -1,49 +1,19 @@
 ---
 name: finish
-description: 現在のブランチのPRをマージし、分岐元ブランチに戻って最新化する
-argument-hint: "[追加の指示（任意）]"
+description: Merge the current branch's PR, delete feature branch, switch to base branch, pull latest, and close referenced issues. Usage /finish
 disable-model-invocation: true
-allowed-tools: Bash
 ---
 
-## 手順
+# Finish: PR Merge, Branch Cleanup & Update
 
-現在のブランチのPRをマージし、分岐元ブランチにチェックアウトして最新の状態に更新する。
+Merge the current branch's PR, delete the feature branch, switch back to the base branch, pull latest changes, and close any issues referenced by closure keywords (`Closes #N` / `Fixes #N` / `Resolves #N`) in the PR body.
 
-### 1. ベースブランチを特定
+`develop` ベースの PR では GitHub の自動クローズが発火しないため、PR 本文のクロージャ語を解析して該当 Issue を手動でクローズします（クロージャ語のない `Related: #N` 等の参照は対象外）。
 
-このプロジェクトではfeatureブランチは必ず `develop` から切るルールのため、ベースブランチは常に `develop` とする。なお、既存PRが存在する場合は `gh pr view --json baseRefName -q .baseRefName` で一致を確認しても良い。
-
-### 2. PRの状態を確認
+Run the finish script:
 
 ```bash
-gh pr view --json isDraft -q .isDraft
+bash .claude/skills/finish/finish.sh
 ```
 
-結果が `true`（ドラフト状態）の場合は「⚠️ このPRはドラフト状態です。Ready にしてから /finish を実行してください。」と警告を出し、**処理を中断する**。
-
-### 3. PRをマージ
-
-`gh pr merge` で現在のブランチのPRをマージする：
-
-```bash
-gh pr merge --merge --delete-branch
-```
-
-- `--merge` でマージコミットを作成
-- `--delete-branch` でリモート・ローカルのブランチを削除
-
-### 4. ベースブランチに切り替えて最新化
-
-```bash
-git checkout <base>
-git pull
-```
-
-### 5. 結果を表示
-
-現在のブランチと最新のログを表示して完了を確認する。
-
-### 補足ルール
-
-- ユーザーから追加の指示がある場合: $ARGUMENTS
+Display the script output to the user as-is. Do NOT follow up with additional actions (e.g., manual branch deletion) if the script reports errors or warnings.
