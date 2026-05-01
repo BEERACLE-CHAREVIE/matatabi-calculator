@@ -1,7 +1,7 @@
 # jspdf v2 系の脆弱性判断メモ
 
-> ステータス: 確定（2026-05-01 時点）
-> 関連 Issue: #24（本書の起票元） / #5（PDF レポート実装、本書を遵守する） / #8（依存ライブラリ追加、本書の前提）
+> ステータス: 確定（最終判断 2026-05-01）
+> 関連 Issue: #24（本書の起票元） / #5（PDF レポート実装、本書を遵守する） / #8（依存ライブラリ追加、本書の前提） / #50（v3/v4 即時移行不採用の最終判断、本書 §5・§6.4 に反映）
 
 ## 本書の目的
 
@@ -109,7 +109,7 @@
 
 ## 5. v3 / v4 移行 PoC への参照
 
-本 Issue 判断項目 (b) の v3 / v4 移行 API 互換調査は `docs/security/jspdf-v3-migration-poc.md` に分離している。プラン作成時点（2026-05-01）の暫定判定は **「即時移行は推奨しない」**。Issue #5 着手時点で再評価する。
+本 Issue 判断項目 (b) の v3 / v4 移行 API 互換調査は `docs/security/jspdf-v3-migration-poc.md` に分離している。**Issue #50 にて 2026-05-01 に v2 継続を最終判断（v3/v4 即時移行はしない）。** Issue #5 着手時点で `docs/security/jspdf-v3-migration-poc.md` §5.3 の再評価トリガーを再確認する。
 
 ## 6. 残存リスク受容の運用
 
@@ -137,6 +137,29 @@
 - `dompurify` を v3.4.0+ に強制更新する `overrides` を入れると、jspdf v2 が利用する内部 API が破壊される可能性があり、`import "jspdf"` 時のモジュール初期化エラーリスクが残る。
 - 本書 §2.3 で dompurify コードパスは到達不能と判定しているため、強制更新の必要性が低い。
 - Issue #5 着手時点で v3 / v4 移行が決まれば `overrides` は不要になる（jspdf 自体の修正版採用）。一時的な対症療法を入れるよりは、CI + 文書化された到達不能判定の二段構えを採る。
+
+### 6.4 Next.js 系 high / moderate の扱い（Issue #50 確定）
+
+`npm audit` 実測（2026-05-01）では、本書 §1 の jspdf 系とは別系統で、Next.js 周辺の高位脆弱性が併せて報告される。本書のスコープ外だが、Issue #50 の受け入れ条件 (b)「high 脆弱性も方針が文書化されている（即対応 / 別 Issue 化）」を満たすため、本節で扱いを明記する。
+
+| 区分 | 主な advisory 経路 | 重大度 | 修正版 |
+|---|---|---|---|
+| `next` 本体 | next の複数 advisory + 推移依存 `postcss` 経由 | high | `next@16.2.4` 以降 |
+| `glob` | 古い `glob` の依存を `@next/eslint-plugin-next` 経由で要求 | high | `next@16` の依存解決追従 |
+| `eslint-config-next` | `@next/eslint-plugin-next` 経由 | high | `next@16` の依存解決追従 |
+| `@next/eslint-plugin-next` | `glob` 経由 | high | `next@16` の依存解決追従 |
+| `postcss` | `next` の推移依存 | moderate | `next@16` の依存解決追従 |
+
+#### 即時更新しない理由
+
+- 本リポジトリは `next@14.2.35` で App Router / `next/font/local` / `@cloudflare/next-on-pages` 連携を前提に運用される（`.claude/issue-order.md` フェーズ 3 / `README.md` の Cloudflare Pages 設定）。
+- `next@14 → next@16` は **メジャー 2 段飛び**（v14 → v15 → v16）。Breaking changes の影響範囲（App Router の細部、middleware API、画像最適化、`next/font/local` の挙動）を Issue #50 のスコープで吸収するのは過大。
+- `@cloudflare/next-on-pages` が `next@16` の Edge Runtime 仕様変更にどこまで追従済みかも別途検証が必要。
+
+#### 別 Issue 化方針
+
+- 「Next.js 14 → 16 メジャー更新」を独立した調査・移行 Issue として切り出す（本 Issue 完了後に起票予定）。`postcss` / `glob` は `next` の依存解決に追従する形で同時更新する想定。
+- 本 Issue（#50）完了時点では、`.github/workflows/security-audit.yml` の `audit-level=critical` を維持し、high レベルの CI 赤化は当面起こさない運用とする（critical 1 件の赤化のみ §6.2 に従って許容）。
 
 ## 7. レビュー観点（Issue #5 担当者向け申し送り）
 
