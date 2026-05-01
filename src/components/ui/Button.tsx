@@ -10,7 +10,9 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-accent text-canvas hover:opacity-90",
+  // primary は ink/canvas で WCAG AA 4.5:1 を満たす組み合わせ (#72665B on #F8F6F2 ≈ 5.0:1)。
+  // accent は色味として薄く CTA テキストとのコントラスト比が 1.8:1 程度しか出ないため非採用。
+  primary: "bg-ink text-canvas hover:opacity-90",
   secondary: "border border-line bg-canvas text-ink hover:bg-line/30",
   ghost: "bg-transparent text-ink hover:bg-line/20",
 };

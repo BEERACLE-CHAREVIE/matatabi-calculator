@@ -4,3 +4,5 @@ export { Card } from "./Card";
 export type { CardProps } from "./Card";
 export { Footer } from "./Footer";
 export type { FooterProps } from "./Footer";
+export { Accordion } from "./Accordion";
+export type { AccordionItem, AccordionProps } from "./Accordion";
