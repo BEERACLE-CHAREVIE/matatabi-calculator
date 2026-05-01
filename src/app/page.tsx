@@ -140,7 +140,7 @@ export default function Home() {
       <ClosingCta
         headline="数字を、味方にしませんか。"
         body="3 年後の IT コストは、今日の判断で変わります。まずは 5 分の診断から。"
-        ctaLabel="3 分で診断する"
+        ctaLabel="5 分で診断する"
         ctaHref="/calculate"
       />
     </main>
