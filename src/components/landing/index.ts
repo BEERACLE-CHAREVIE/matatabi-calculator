@@ -10,3 +10,5 @@ export { FAQ } from "./FAQ";
 export type { FAQProps } from "./FAQ";
 export { ClosingCta } from "./ClosingCta";
 export type { ClosingCtaProps } from "./ClosingCta";
+export { SectionEyebrow } from "./SectionEyebrow";
+export type { SectionEyebrowProps } from "./SectionEyebrow";

@@ -35,4 +35,47 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /*
+   * 紙質グレイン: canvas (#F8F6F2) 上に重ねる微細な粒子テクスチャ。
+   * SVG fractalNoise を ink (#72665B = rgb 0.45, 0.4, 0.357) で着色し、
+   * α 0.045 で抑制。コンテナの ::before / ::after で重ねる前提。
+   */
+  .bg-grain {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 0.451 0 0 0 0 0.4 0 0 0 0 0.357 0 0 0 0.045 0'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>");
+    background-size: 240px 240px;
+  }
+
+  /*
+   * 手書き風ブラシ下線: <span className="underline-brush"> で文字を囲うと
+   * 末尾に accent (#9CAEB8) 系の波線が走る。SVG をベースラインに配置。
+   */
+  .underline-brush {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 12' preserveAspectRatio='none'><path d='M2 8 Q 30 1, 60 7 T 118 6' fill='none' stroke='%239CAEB8' stroke-width='3' stroke-linecap='round'/></svg>");
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 100% 0.32em;
+    padding-bottom: 0.18em;
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up {
+    animation: none;
+  }
 }
