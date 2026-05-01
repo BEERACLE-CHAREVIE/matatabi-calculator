@@ -51,7 +51,7 @@ npm run lint
 
 ## デプロイ
 
-本リポジトリは Cloudflare Pages 上で自動デプロイされます（Issue #11 で設定）。
+本リポジトリは Cloudflare Pages のダッシュボードで GitHub 連携を構成済みで、push をトリガーに自動デプロイされます。
 
 ### ブランチ運用
 
