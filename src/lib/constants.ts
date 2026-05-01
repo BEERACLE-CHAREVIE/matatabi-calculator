@@ -49,7 +49,9 @@ export const OKU_THRESHOLD_MAN_YEN = 100_000;
  * `value` から union 型 `InsourcingLevel` を導出する。
  *
  * - `value`: 内製化の進捗（0 = 完全ベンダー依存、1.0 = 完全内製）
- * - `gap`: 1 - value（止血額への乗算係数）
+ * - `gap`: 1 - value（止血額への乗算係数）。UI 表示や説明文用の派生値。
+ *   計算ロジックでは `calculate()` 内で `1 - insourcingLevel` を直接算出するため
+ *   本フィールドは参照していない（仕様書 §4.2）。
  * - `label`: 通常の選択 UI で表示するラベル
  * - `shortLabel`: グラフ凡例など狭い領域での短縮表示用
  *

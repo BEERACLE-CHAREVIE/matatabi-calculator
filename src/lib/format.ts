@@ -11,7 +11,7 @@
 import { OKU_THRESHOLD_MAN_YEN, YEN_PER_MAN_YEN } from "./constants";
 
 const ZERO_MAN_YEN = "0万円";
-const ZERO_YEN = "0 円";
+const ZERO_YEN = "0円";
 const ZERO_PERCENT = "0%";
 const ZERO_HUMAN = "0 人";
 
@@ -57,12 +57,13 @@ export function formatManYenCompact(yen: number): string {
 }
 
 /**
- * 円単位の値を「1,234,567 円」形式に変換する。デバッグ・PDF 補助表示用。
- * NaN / Infinity / 負値は `"0 円"` を返す。
+ * 円単位の値を「1,234,567円」形式に変換する。デバッグ・PDF 補助表示用。
+ * `formatManYen` と表記を揃えるため通貨単位の前にスペースを入れない。
+ * NaN / Infinity / 負値は `"0円"` を返す。
  */
 export function formatYen(yen: number): string {
   if (!Number.isFinite(yen) || yen < 0) return ZERO_YEN;
-  return `${Math.round(yen).toLocaleString("ja-JP")} 円`;
+  return `${Math.round(yen).toLocaleString("ja-JP")}円`;
 }
 
 /**
@@ -76,7 +77,10 @@ export function formatYen(yen: number): string {
 export function formatPercent(rate: number, fractionDigits = 0): string {
   if (!Number.isFinite(rate) || rate < 0) return ZERO_PERCENT;
   const fixed = (rate * 100).toFixed(fractionDigits);
-  const trimmed = fractionDigits > 0 ? fixed.replace(/\.?0+$/, "") : fixed;
+  // fractionDigits > 0 のとき末尾の不要な 0 と小数点を除去する。
+  // 値が 0 のときは regex が全文字を削除してしまうため、空文字なら "0" にフォールバック。
+  const trimmed =
+    fractionDigits > 0 ? fixed.replace(/\.?0+$/, "") || "0" : fixed;
   return `${trimmed}%`;
 }
 
