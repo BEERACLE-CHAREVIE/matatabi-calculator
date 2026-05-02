@@ -48,6 +48,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/cn";
 import { useCountUp } from "@/hooks/useCountUp";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { formatManYen, formatManYenCompact, formatPercent } from "@/lib/format";
 import type { InsourcingLevel } from "@/lib/constants";
 import type { CalculationInput, CalculationOutput } from "@/lib/calculation";
@@ -65,36 +66,6 @@ const MOBILE_QUERY = "(max-width: 639px)";
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 const SAVINGS_LABEL = "3 年間の止血";
 const PROFIT_LABEL = "3 年間の利益創出";
-
-function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState<boolean>(false);
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const mql = window.matchMedia(REDUCED_MOTION_QUERY);
-    // SSR ハイドレーション後に matchMedia の実値で初期同期するための setState。
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setReduced(mql.matches);
-    const onChange = (event: MediaQueryListEvent) => setReduced(event.matches);
-    mql.addEventListener("change", onChange);
-    return () => mql.removeEventListener("change", onChange);
-  }, []);
-  return reduced;
-}
-
-function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const mql = window.matchMedia(MOBILE_QUERY);
-    // SSR ハイドレーション後に matchMedia の実値で初期同期するための setState。
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsMobile(mql.matches);
-    const onChange = (event: MediaQueryListEvent) => setIsMobile(event.matches);
-    mql.addEventListener("change", onChange);
-    return () => mql.removeEventListener("change", onChange);
-  }, []);
-  return isMobile;
-}
 
 export type ResultDashboardProps = {
   /** calculate() の戻り値（円単位の浮動小数）。 */
@@ -129,13 +100,13 @@ export function ResultDashboard({
   onResetRequest,
   className,
 }: ResultDashboardProps) {
-  const reducedMotion = useReducedMotion();
-  const isMobile = useIsMobile();
+  const reducedMotion = useMediaQuery(REDUCED_MOTION_QUERY);
+  const isMobile = useMediaQuery(MOBILE_QUERY);
 
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [generatedAt, setGeneratedAt] = useState<Date | null>(null);
   const pdfDashboardRef = useRef<HTMLDivElement | null>(null);
-  const generatedAtRef = useRef<Date | null>(null);
   // 早期 return 用に最新フラグを ref で保持し、`useCallback` の deps を空にして
   // ハンドラ参照を安定させる（`<Button onClick>` の不要な props 変化を抑制）。
   const isGeneratingPdfRef = useRef(false);
@@ -151,8 +122,8 @@ export function ResultDashboard({
     if (isGeneratingPdfRef.current) return;
     isGeneratingPdfRef.current = true;
     setPdfError(null);
-    const generatedAt = new Date();
-    generatedAtRef.current = generatedAt;
+    const now = new Date();
+    setGeneratedAt(now);
     setIsGeneratingPdf(true);
     try {
       // 仕様書 §8.1: requestAnimationFrame 2 回分待機（DOM レイアウト確定 + フォント解決）。
@@ -167,7 +138,7 @@ export function ResultDashboard({
       }
       await generatePdf({
         element,
-        filename: buildPdfFilename(generatedAt),
+        filename: buildPdfFilename(now),
       });
     } catch (err) {
       // 仕様書 §8.3: コンソールに詳細を出力しつつ、UI には固定文言を表示。
@@ -177,7 +148,7 @@ export function ResultDashboard({
       );
     } finally {
       setIsGeneratingPdf(false);
-      generatedAtRef.current = null;
+      setGeneratedAt(null);
       isGeneratingPdfRef.current = false;
     }
   }, []);
@@ -411,9 +382,7 @@ export function ResultDashboard({
             result={result}
             insourcingLevel={insourcingLevel}
             inputs={inputs}
-            // PDF 生成開始時にハンドラ側で current にセット済み。レンダー時は読み出すだけ。
-            // eslint-disable-next-line react-hooks/refs
-            generatedAt={generatedAtRef.current ?? new Date()}
+            generatedAt={generatedAt ?? new Date()}
           />
         </div>
       ) : null}
