@@ -43,7 +43,10 @@ export interface GeneratePdfOptions {
  *           （仕様書 §11.2 / 脆弱性方針 §2.1 のレビュー粒度を維持するため）。
  */
 export async function generatePdf(options: GeneratePdfOptions): Promise<void> {
-  const [{ default: html2canvas }, { default: JsPDF }] = await Promise.all([
+  // jsPDF はライブラリ慣習で先頭小文字のクラス名 `jsPDF` を採用しているため、
+  // ローカル変数名もそれに揃える（grep 時の一致精度のため）。
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
     import("html2canvas"),
     import("jspdf"),
   ]);
@@ -55,7 +58,7 @@ export async function generatePdf(options: GeneratePdfOptions): Promise<void> {
   });
   const imgData = canvas.toDataURL("image/png");
 
-  const pdf = new JsPDF("p", "mm", "a4");
+  const pdf = new jsPDF("p", "mm", "a4");
   pdf.addImage(imgData, "PNG", 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
   pdf.save(options.filename);
 }

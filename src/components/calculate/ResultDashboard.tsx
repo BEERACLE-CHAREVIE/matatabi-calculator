@@ -132,6 +132,9 @@ export function ResultDashboard({
   const [pdfError, setPdfError] = useState<string | null>(null);
   const pdfDashboardRef = useRef<HTMLDivElement | null>(null);
   const generatedAtRef = useRef<Date | null>(null);
+  // 早期 return 用に最新フラグを ref で保持し、`useCallback` の deps を空にして
+  // ハンドラ参照を安定させる（`<Button onClick>` の不要な props 変化を抑制）。
+  const isGeneratingPdfRef = useRef(false);
 
   // 仕様書 docs/spec/pdf-report.md §8.3: エラーメッセージは 5 秒で自動消去。
   useEffect(() => {
@@ -141,7 +144,8 @@ export function ResultDashboard({
   }, [pdfError]);
 
   const handleDownloadPdf = useCallback(async () => {
-    if (isGeneratingPdf) return;
+    if (isGeneratingPdfRef.current) return;
+    isGeneratingPdfRef.current = true;
     setPdfError(null);
     const generatedAt = new Date();
     generatedAtRef.current = generatedAt;
@@ -170,8 +174,9 @@ export function ResultDashboard({
     } finally {
       setIsGeneratingPdf(false);
       generatedAtRef.current = null;
+      isGeneratingPdfRef.current = false;
     }
-  }, [isGeneratingPdf]);
+  }, []);
 
   const animatedSavings = useCountUp(result.threeYearSavings);
   const animatedAnnualProfit = useCountUp(result.annualProfitCreation);

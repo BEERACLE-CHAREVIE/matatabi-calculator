@@ -65,14 +65,17 @@ const PROFIT_LABEL = "3 年間の利益創出";
 /**
  * 更新待ち期間の代表値→ラベル変換。`InputForm` の `UPDATE_WAIT_OPTIONS` と同一マッピングを
  * 仕様書 §5.4 の `(※)` 注記準拠で再定義する。InputForm 側は private 配列のため import 不可。
+ *
+ * `as const` で literal の組を保つことで、`InputForm` 側の値が変わった際に手書き複製の
+ * 反映漏れを TS エラーとして拾いやすくする（共有型の正式統一は別 Issue で対応）。
  */
-const UPDATE_WAIT_LABELS: Array<{ value: number; label: string }> = [
+const UPDATE_WAIT_LABELS = [
   { value: 0.5, label: "すぐ対応（〜1ヶ月）" },
   { value: 1.5, label: "1〜2ヶ月" },
   { value: 4.5, label: "3〜6ヶ月" },
   { value: 9, label: "半年〜1年" },
   { value: 18, label: "1年以上" },
-];
+] as const;
 
 /** 端末タイムゾーンに依存させず JST 固定で「YYYY-MM-DD HH:mm」を生成。 */
 function formatPdfDateTime(date: Date): string {
@@ -444,7 +447,13 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
                 <LabelList
                   dataKey="savings"
                   position="insideLeft"
-                  formatter={(value: number) => formatManYen(value)}
+                  formatter={(value: number) =>
+                    value <
+                    (result.threeYearSavings + result.threeYearProfitCreation) *
+                      0.05
+                      ? ""
+                      : formatManYen(value)
+                  }
                   style={{ fill: WHITE_HEX, fontSize: 10, fontWeight: 600 }}
                 />
               </Bar>
@@ -459,7 +468,17 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
                 <LabelList
                   dataKey="profit"
                   position="insideRight"
-                  formatter={(value: number) => formatManYen(value)}
+                  formatter={(value: number) =>
+                    // 桁爆発時に隣接ラベルと衝突する場合や、profit が savings に対して
+                    // 極端に小さく insideRight に収まらない場合は描画を抑制する。
+                    // 比率閾値はバー幅の概算（A4 約 180mm + scale=2）で「ラベルが視認可能」
+                    // と判断できる下限として 5% を採用。
+                    value <
+                    (result.threeYearSavings + result.threeYearProfitCreation) *
+                      0.05
+                      ? ""
+                      : formatManYen(value)
+                  }
                   style={{ fill: INK_HEX, fontSize: 10, fontWeight: 600 }}
                 />
               </Bar>
@@ -508,7 +527,11 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           />
           <SummaryRow
             label="手作業人数"
-            value={`${Math.round(inputs.manualWorkerCount).toLocaleString("ja-JP")} 人`}
+            value={`${Math.round(
+              // `InputForm` 側で整数バリデーション済みだが、`CalculationInput.manualWorkerCount`
+              // の型は `number` のため、想定外の小数値が表示に漏れないよう PDF 表示層でも防御的に丸める。
+              inputs.manualWorkerCount,
+            ).toLocaleString("ja-JP")} 人`}
           />
           <SummaryRow label="更新待ち期間" value={updateWaitLabel} />
           <SummaryRow label="内製化状況" value={insourcingLabel} />
