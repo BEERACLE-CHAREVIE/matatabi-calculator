@@ -47,6 +47,9 @@ export interface CalculationInput {
  *
  * - 金額系プロパティはすべて円単位の浮動小数。表示時に format.ts で万円丸めする。
  * - `speedWarning`: `updateWaitMonths >= 3` で `true`（仕様書 §7）。
+ * - `speedWarningMonthlyLoss`: 警告バナーへ動的差し込みする月額機会損失（円単位）。
+ *   `speedWarning === true` のとき `monthlyVendorCost * insourcingGap`、それ以外は 0
+ *   （docs/spec/warning-copy.md §7.1 / §7.3）。
  * - `insourcingGap`: `1 - insourcingLevel`（0..1）。止血額への乗算係数。
  */
 export interface CalculationOutput {
@@ -55,6 +58,7 @@ export interface CalculationOutput {
   threeYearProfitCreation: number;
   totalThreeYearImpact: number;
   speedWarning: boolean;
+  speedWarningMonthlyLoss: number;
   insourcingGap: number;
 }
 
@@ -154,12 +158,18 @@ export function calculate(input: CalculationInput): CalculationOutput {
     threeYearSavings + threeYearProfitCreation,
   );
 
+  const speedWarning = updateWaitMonths >= SPEED_WARNING_THRESHOLD_MONTHS;
+  const speedWarningMonthlyLoss = speedWarning
+    ? clampAmount(monthlyVendorCost * insourcingGap)
+    : 0;
+
   return {
     threeYearSavings,
     annualProfitCreation,
     threeYearProfitCreation,
     totalThreeYearImpact,
-    speedWarning: updateWaitMonths >= SPEED_WARNING_THRESHOLD_MONTHS,
+    speedWarning,
+    speedWarningMonthlyLoss,
     insourcingGap,
   };
 }
