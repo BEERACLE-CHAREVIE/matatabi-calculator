@@ -71,6 +71,8 @@ function useReducedMotion(): boolean {
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
     const mql = window.matchMedia(REDUCED_MOTION_QUERY);
+    // SSR ハイドレーション後に matchMedia の実値で初期同期するための setState。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setReduced(mql.matches);
     const onChange = (event: MediaQueryListEvent) => setReduced(event.matches);
     mql.addEventListener("change", onChange);
@@ -84,6 +86,8 @@ function useIsMobile(): boolean {
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
     const mql = window.matchMedia(MOBILE_QUERY);
+    // SSR ハイドレーション後に matchMedia の実値で初期同期するための setState。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMobile(mql.matches);
     const onChange = (event: MediaQueryListEvent) => setIsMobile(event.matches);
     mql.addEventListener("change", onChange);
@@ -407,6 +411,8 @@ export function ResultDashboard({
             result={result}
             insourcingLevel={insourcingLevel}
             inputs={inputs}
+            // PDF 生成開始時にハンドラ側で current にセット済み。レンダー時は読み出すだけ。
+            // eslint-disable-next-line react-hooks/refs
             generatedAt={generatedAtRef.current ?? new Date()}
           />
         </div>

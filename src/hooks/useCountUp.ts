@@ -67,6 +67,8 @@ export function useCountUp(
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
     const mql = window.matchMedia(REDUCED_MOTION_QUERY);
+    // SSR ハイドレーション後に matchMedia の実値で初期同期するための setState。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setReducedMotion(mql.matches);
     const onChange = (event: MediaQueryListEvent) => {
       setReducedMotion(event.matches);

@@ -9,7 +9,7 @@
 - `src/app/favicon.ico` / `src/app/icon.svg` / `src/app/apple-icon.png` / `src/app/opengraph-image.png`
 - `public/brand/logo-header.svg` / `public/brand/logo-pdf.svg` / `public/brand/cat-deco-1.svg`
 
-`src/app/` 配下のアイコン系ファイルは Next.js 14 App Router の規約に従って配置されており、`<head>` 内の `<link rel="icon">` / `<meta property="og:image">` / `<link rel="apple-touch-icon">` は Next.js が自動付与します（`src/app/layout.tsx` で手動宣言する必要なし）。
+`src/app/` 配下のアイコン系ファイルは Next.js App Router の規約（v14 以降同一）に従って配置されており、`<head>` 内の `<link rel="icon">` / `<meta property="og:image">` / `<link rel="apple-touch-icon">` は Next.js が自動付与します（`src/app/layout.tsx` で手動宣言する必要なし）。
 
 ## 素材一覧
 

@@ -45,7 +45,6 @@ export interface GeneratePdfOptions {
 export async function generatePdf(options: GeneratePdfOptions): Promise<void> {
   // jsPDF はライブラリ慣習で先頭小文字のクラス名 `jsPDF` を採用しているため、
   // ローカル変数名もそれに揃える（grep 時の一致精度のため）。
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
     import("html2canvas"),
     import("jspdf"),
