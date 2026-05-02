@@ -226,3 +226,35 @@ export function cn(
 | `cn` を極小自前実装にする（`clsx` / `tailwind-merge` 不採用） | §8.3 |
 | `Input` / フォーム部品ラッパは本 Issue では作らない | §8.2.3 |
 | `Card` の variant / composition API は持たない | §8.2.2, §21 R15 |
+
+---
+
+## 12. PWA / メタデータ資産
+
+ブラウザタブ / SNS シェア / ホーム画面追加で表示される画像とメタ情報のソース・オブ・トゥルース。Issue #44 でファイルベース API + `manifest.ts` 方式に統一。
+
+### 12.1 画像資産（Next.js App Router ファイルベース API）
+
+| 資産 | 配置パス | サイズ | 用途 | 暫定/確定 |
+|---|---|---|---|---|
+| favicon | `src/app/favicon.ico` | 16x16 / 32x32 マルチサイズ | ブラウザタブ | 暫定（最終差し替えは別 Issue） |
+| icon (SVG) | `src/app/icon.svg` | 32x32 viewBox | モダンブラウザ | 暫定 |
+| apple-touch-icon | `src/app/apple-icon.png` | 180x180 | iOS ホーム画面 | 暫定 |
+| OG / Twitter card | `src/app/opengraph-image.png` | 1200x630 | SNS シェア時のプレビュー | 暫定 |
+
+差し替え時は `src/app/` 内のファイルを上書きするだけで HTML 側の `<link>` / `<meta>` が自動追従する（コード変更不要）。`public/` への重複配置は行わない。
+
+### 12.2 PWA Web App Manifest
+
+`src/app/manifest.ts` に集約。ビルド時に `out/manifest.webmanifest` として出力され、`<link rel="manifest" href="/manifest.webmanifest" />` で参照される。
+
+| プロパティ | 値 | 出典 |
+|---|---|---|
+| `name` / `short_name` | `SITE_NAME`（"またたび計算機"） | `src/app/layout.tsx` から re-export |
+| `description` | `SITE_DESCRIPTION` | `src/app/layout.tsx` から re-export |
+| `background_color` | `#F8F6F2` | §2 `canvas` / `offwhite` |
+| `theme_color` | `#F8F6F2` | `layout.tsx` の `viewport.themeColor` と一致 |
+| `display` | `standalone` | ホーム画面追加時にブラウザ Chrome を隠す |
+| `start_url` / `scope` | `/` | LP ルート |
+
+`background_color` / `theme_color` の HEX を変える際は §2 のカラーロールも合わせて更新する。
