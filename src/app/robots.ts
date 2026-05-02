@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://roi.nekonimatatabi.com";
+import { SITE_URL } from "./site-metadata";
+
+export const dynamic = "force-static";
 
 export default function robots(): MetadataRoute.Robots {
   return {

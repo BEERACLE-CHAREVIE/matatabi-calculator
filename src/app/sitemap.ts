@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://roi.nekonimatatabi.com";
+import { SITE_URL } from "./site-metadata";
 
 // 固定 ISO 文字列に揃えることで、内容変更がない PR で sitemap の <lastmod> 差分が
 // 発生しないようにする。LP の本格的な更新時にこの定数を更新する。
 const LAST_MODIFIED = "2026-05-01";
+
+export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = LAST_MODIFIED;

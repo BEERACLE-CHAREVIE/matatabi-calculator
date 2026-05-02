@@ -3,6 +3,12 @@ import { Inter, Noto_Sans_JP } from "next/font/google";
 import Script from "next/script";
 import { Footer } from "@/components/ui/Footer";
 import { Header } from "@/components/ui/Header";
+import {
+  SITE_DEFAULT_TITLE,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_URL,
+} from "./site-metadata";
 import "./globals.css";
 
 const CF_BEACON_TOKEN = process.env.NEXT_PUBLIC_CF_BEACON_TOKEN;
@@ -20,13 +26,6 @@ const notoSansJp = Noto_Sans_JP({
   display: "swap",
   preload: false,
 });
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://roi.nekonimatatabi.com";
-export const SITE_NAME = "またたび計算機";
-const SITE_DEFAULT_TITLE = "またたび計算機 | IT コスト診断・ROI 試算ツール";
-export const SITE_DESCRIPTION =
-  "中小企業の経営者向け ROI 診断ツール。月額ベンダー費用や改修費、手作業時間を 5 つの質問に答えるだけで、3 年間で止血できる IT コストと取り逃している利益を試算。結果は PDF で出力でき、登録不要・完全無料でご利用いただけます。";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
