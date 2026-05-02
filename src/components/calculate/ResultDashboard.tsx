@@ -13,9 +13,16 @@
  *         呼び出し側（CalculatePageClient）で `next/dynamic({ ssr: false })` を経由する。
  * - 依存: recharts（v2 系）／lucide-react／@/hooks/useCountUp／@/lib/format／
  *         @/lib/calculation／@/lib/constants／@/components/ui/Card／@/lib/cn
+ * - トークン追従: `ACCENT_HEX` / `ACCENT_60` / `TOOLTIP_CURSOR_FILL` は
+ *         `tailwind.config.ts` の `accent` (#9CAEB8) と同値の手書き定数。
+ *         `docs/design-tokens.md §2` の「CSS 変数を挟まない」方針に沿った意図的設計のため、
+ *         `accent` を変更する際は本ファイルも併せて更新すること。
+ * - 凡例の表示値: `<Legend>` 内では `result.threeYearSavings` 等の最終値を静的表示する。
+ *         グラフアニメーション 800ms 中はバー長と凡例数値が一瞬不整合になるが、
+ *         凡例は「最終的に到達する値」を示すラベルとして役割が明確なため意図的に静的化。
  */
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Bar,
   BarChart,
@@ -109,13 +116,16 @@ export function ResultDashboard({
   const isPartiallyInsourced = insourcingLevel > 0 && insourcingLevel < 1;
   const chartHeight = isMobile ? BAR_HEIGHT_MOBILE : BAR_HEIGHT_DESKTOP;
 
-  const chartData = [
-    {
-      label: "3年合計",
-      savings: result.threeYearSavings,
-      profit: result.threeYearProfitCreation,
-    },
-  ];
+  const chartData = useMemo(
+    () => [
+      {
+        label: "3年合計",
+        savings: result.threeYearSavings,
+        profit: result.threeYearProfitCreation,
+      },
+    ],
+    [result.threeYearSavings, result.threeYearProfitCreation],
+  );
 
   return (
     <section
@@ -224,7 +234,7 @@ export function ResultDashboard({
                     <li className="flex items-center gap-2">
                       <Sparkles
                         aria-hidden="true"
-                        className="h-4 w-4 text-accent/70"
+                        className="h-4 w-4 text-accent/60"
                       />
                       <span>{PROFIT_LABEL}</span>
                       <span className="font-semibold">
