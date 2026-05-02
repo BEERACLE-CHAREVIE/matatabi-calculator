@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { CalculatePageClient } from "./CalculatePageClient";
 
 export const metadata: Metadata = {
   title: "ROI 診断",
@@ -11,23 +10,14 @@ export const metadata: Metadata = {
 
 export default function CalculatePage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16 sm:px-8">
-      <article className="space-y-6 text-center">
-        <h1 className="text-2xl font-bold text-ink sm:text-3xl">
-          診断ツールは現在準備中です
-        </h1>
+    <main className="mx-auto max-w-3xl px-4 py-12 sm:px-8 sm:py-16">
+      <header className="mb-8 space-y-3 sm:mb-12">
+        <h1 className="text-2xl font-bold text-ink sm:text-3xl">ROI 診断</h1>
         <p className="text-sm leading-relaxed text-ink/80 sm:text-base">
-          ROI 診断ツール本体は Issue #2 / #3 で実装予定です。
-          公開準備が整いましたら、改めてご案内いたします。
+          5 つの質問にお答えいただくと、3 年間の止血額と機会損失を試算します。
         </p>
-        <Link
-          href="/"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-line bg-canvas px-4 text-base font-medium text-ink transition-colors duration-150 hover:bg-line/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-        >
-          <ArrowLeft aria-hidden="true" className="h-5 w-5" />
-          トップへ戻る
-        </Link>
-      </article>
+      </header>
+      <CalculatePageClient />
     </main>
   );
 }
