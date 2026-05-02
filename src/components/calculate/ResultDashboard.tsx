@@ -5,14 +5,18 @@
  *
  * - 仕様: docs/spec/result-dashboard.md §3〜§9（ヒーロー / 補助カード / 積み上げ横棒 /
  *         §6 アニメーション方針 / §9 表示単位）／docs/design-tokens.md §2〜§5
+ *         docs/spec/pdf-report.md §8（生成フロー）/ §11.4（コンテナ責務）
  * - 設計: 仕様書 §10.2 の「描画層 (`DashboardView`) / 画面コンテナ (`ResultDashboard`) /
  *         PDF 用ラッパ (`PdfDashboard`)」3 層分離は本実装では本ファイル 1 つに同居させた
- *         暫定構造で運用する。`PdfDashboard` 切り出しは PDF 実装（Issue #43）着手時に
- *         本ファイルから `DashboardView` を抽出するかたちで対応する想定。
+ *         暫定構造で運用する。`DashboardView` 抽出は別 Issue として申し送り、
+ *         本 Issue（#43）では `PdfDashboard` を独立コンポーネントとして並置する。
  *         Recharts は SSR 段階で `ResizeObserver` 等のブラウザ API に依存するため、
  *         呼び出し側（CalculatePageClient）で `next/dynamic({ ssr: false })` を経由する。
+ *         PDF 生成中のみ `PdfDashboard` を `position: absolute; left: -9999px` で
+ *         隠しマウントし、`forwardRef` 経由で取得した DOM ノードを `generatePdf()` に渡す。
  * - 依存: recharts（v2 系）／lucide-react／@/hooks/useCountUp／@/lib/format／
- *         @/lib/calculation／@/lib/constants／@/components/ui/Card／@/lib/cn
+ *         @/lib/calculation／@/lib/constants／@/components/ui/Card／@/lib/cn／
+ *         @/lib/pdf（dynamic import 内蔵）／@/lib/pdfFilename／./PdfDashboard
  * - トークン追従: `ACCENT_HEX` / `ACCENT_60` / `TOOLTIP_CURSOR_FILL` は
  *         `tailwind.config.ts` の `accent` (#9CAEB8) と同値の手書き定数。
  *         `docs/design-tokens.md §2` の「CSS 変数を挟まない」方針に沿った意図的設計のため、
@@ -22,7 +26,14 @@
  *         凡例は「最終的に到達する値」を示すラベルとして役割が明確なため意図的に静的化。
  */
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   Bar,
   BarChart,
@@ -32,13 +43,17 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { PiggyBank, Sparkles } from "lucide-react";
+import { Loader2, PiggyBank, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/cn";
 import { useCountUp } from "@/hooks/useCountUp";
 import { formatManYen, formatManYenCompact, formatPercent } from "@/lib/format";
 import type { InsourcingLevel } from "@/lib/constants";
-import type { CalculationOutput } from "@/lib/calculation";
+import type { CalculationInput, CalculationOutput } from "@/lib/calculation";
+import { generatePdf } from "@/lib/pdf";
+import { buildPdfFilename } from "@/lib/pdfFilename";
+import { PdfDashboard } from "./PdfDashboard";
 
 const ACCENT_HEX = "#9CAEB8";
 const ACCENT_60 = "rgba(156, 174, 184, 0.6)";
@@ -83,28 +98,80 @@ export type ResultDashboardProps = {
   /** 内製化注記（仕様書 §3.3）の表示制御に使用。 */
   insourcingLevel: InsourcingLevel;
   /**
+   * フォーム入力値（円単位）。`PdfDashboard` の入力サマリー表示に使用する
+   * （仕様書 docs/spec/pdf-report.md §5.4）。
+   */
+  inputs: CalculationInput;
+  /**
    * 警告バナー差し込み口（仕様書 §3.4 / §8）。
    * 親が WarningBanner（Issue #42）を組み立てて渡す。
    * undefined の場合はバナー領域を描画しない。
    */
   headerSlot?: ReactNode;
   /**
-   * フッター差し込み口（仕様書 §3.4 / Issue #43 連携）。
-   * 親が PDF ダウンロード／再診断ボタンを組み立てて渡す。
+   * 「再診断する」ボタン押下時のコールバック（仕様書 docs/spec/pdf-report.md §11.4）。
+   * 親が `setSubmitted(null)` 等で診断状態のリセットを実行する想定。
+   * 未指定の場合は再診断ボタンを描画しない。
    */
-  footerSlot?: ReactNode;
+  onResetRequest?: () => void;
   className?: string;
 };
 
 export function ResultDashboard({
   result,
   insourcingLevel,
+  inputs,
   headerSlot,
-  footerSlot,
+  onResetRequest,
   className,
 }: ResultDashboardProps) {
   const reducedMotion = useReducedMotion();
   const isMobile = useIsMobile();
+
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const pdfDashboardRef = useRef<HTMLDivElement | null>(null);
+  const generatedAtRef = useRef<Date | null>(null);
+
+  // 仕様書 docs/spec/pdf-report.md §8.3: エラーメッセージは 5 秒で自動消去。
+  useEffect(() => {
+    if (!pdfError) return;
+    const tid = setTimeout(() => setPdfError(null), 5000);
+    return () => clearTimeout(tid);
+  }, [pdfError]);
+
+  const handleDownloadPdf = useCallback(async () => {
+    if (isGeneratingPdf) return;
+    setPdfError(null);
+    const generatedAt = new Date();
+    generatedAtRef.current = generatedAt;
+    setIsGeneratingPdf(true);
+    try {
+      // 仕様書 §8.1: requestAnimationFrame 2 回分待機（DOM レイアウト確定 + フォント解決）。
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => resolve()),
+        ),
+      );
+      const element = pdfDashboardRef.current;
+      if (!element) {
+        throw new Error("PdfDashboard element is not mounted");
+      }
+      await generatePdf({
+        element,
+        filename: buildPdfFilename(generatedAt),
+      });
+    } catch (err) {
+      // 仕様書 §8.3: コンソールに詳細を出力しつつ、UI には固定文言を表示。
+      console.error("[PDF generation failed]", err);
+      setPdfError(
+        "PDFの生成に失敗しました。ページを再読み込みして再度お試しください。",
+      );
+    } finally {
+      setIsGeneratingPdf(false);
+      generatedAtRef.current = null;
+    }
+  }, [isGeneratingPdf]);
 
   const animatedSavings = useCountUp(result.threeYearSavings);
   const animatedAnnualProfit = useCountUp(result.annualProfitCreation);
@@ -280,7 +347,65 @@ export function ResultDashboard({
         ) : null}
       </Card>
 
-      {footerSlot ? <div>{footerSlot}</div> : null}
+      <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+          <Button
+            variant="primary"
+            size="lg"
+            type="button"
+            onClick={handleDownloadPdf}
+            disabled={isGeneratingPdf}
+            aria-busy={isGeneratingPdf}
+          >
+            {isGeneratingPdf ? (
+              <>
+                <Loader2
+                  aria-hidden="true"
+                  className="h-4 w-4 animate-spin"
+                />
+                <span>PDF生成中…</span>
+              </>
+            ) : (
+              <span>PDF をダウンロード</span>
+            )}
+          </Button>
+          {onResetRequest ? (
+            <Button
+              variant="secondary"
+              size="lg"
+              type="button"
+              onClick={onResetRequest}
+            >
+              再診断する
+            </Button>
+          ) : null}
+        </div>
+        {pdfError ? (
+          <p role="alert" className="text-sm text-[#B45656]">
+            {pdfError}
+          </p>
+        ) : null}
+      </div>
+
+      {isGeneratingPdf ? (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: "-9999px",
+            top: 0,
+            pointerEvents: "none",
+          }}
+        >
+          <PdfDashboard
+            ref={pdfDashboardRef}
+            result={result}
+            insourcingLevel={insourcingLevel}
+            inputs={inputs}
+            generatedAt={generatedAtRef.current ?? new Date()}
+          />
+        </div>
+      ) : null}
     </section>
   );
 }
