@@ -43,8 +43,6 @@ export interface GeneratePdfOptions {
  *           （仕様書 §11.2 / 脆弱性方針 §2.1 のレビュー粒度を維持するため）。
  */
 export async function generatePdf(options: GeneratePdfOptions): Promise<void> {
-  // jsPDF はライブラリ慣習で先頭小文字のクラス名 `jsPDF` を採用しているため、
-  // ローカル変数名もそれに揃える（grep 時の一致精度のため）。
   const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
     import("html2canvas"),
     import("jspdf"),
