@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { useMediaQuery } from "./useMediaQuery";
 
 /** カウンターの標準 duration（ミリ秒）。docs/spec/result-dashboard.md §6.1 で確定。 */
 const DEFAULT_DURATION_MS = 1_200;
@@ -57,27 +58,12 @@ export function useCountUp(
 
   // 初期値 0 はマウント時の 0 → target 立ち上げアニメ（仕様書 §6.4）を実現するための固定値。
   const [value, setValue] = useState<number>(0);
-  const [reducedMotion, setReducedMotion] = useState<boolean>(false);
+  const reducedMotion = useMediaQuery(REDUCED_MOTION_QUERY);
 
   const rafIdRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
   const startValueRef = useRef<number>(0);
   const valueRef = useRef<number>(0);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const mql = window.matchMedia(REDUCED_MOTION_QUERY);
-    // SSR ハイドレーション後に matchMedia の実値で初期同期するための setState。
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setReducedMotion(mql.matches);
-    const onChange = (event: MediaQueryListEvent) => {
-      setReducedMotion(event.matches);
-    };
-    mql.addEventListener("change", onChange);
-    return () => {
-      mql.removeEventListener("change", onChange);
-    };
-  }, []);
 
   useEffect(() => {
     // target が NaN / Infinity の場合は rAF を起動せず現在値を保持する。
