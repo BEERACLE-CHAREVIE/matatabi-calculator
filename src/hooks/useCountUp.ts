@@ -16,7 +16,7 @@ import { useEffect, useRef, useState } from "react";
 const DEFAULT_DURATION_MS = 1_200;
 
 /** ease-out cubic。t ∈ [0, 1] を [0, 1] に写像する。 */
-export const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
+export const easeOutCubic = (t: number): number => 1 - (1 - t) ** 3;
 
 /** prefers-reduced-motion: reduce のメディアクエリ文字列。 */
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
@@ -55,6 +55,7 @@ export function useCountUp(
   const easingFn = options?.easing ?? easeOutCubic;
   const enabled = options?.enabled ?? true;
 
+  // 初期値 0 はマウント時の 0 → target 立ち上げアニメ（仕様書 §6.4）を実現するための固定値。
   const [value, setValue] = useState<number>(0);
   const [reducedMotion, setReducedMotion] = useState<boolean>(false);
 
@@ -77,6 +78,17 @@ export function useCountUp(
   }, []);
 
   useEffect(() => {
+    // target が NaN / Infinity の場合は rAF を起動せず現在値を保持する。
+    // NaN === NaN が常に false となり毎フレーム再アニメが走るのを防ぐためのガード
+    // （表示層 src/lib/format.ts:30 の Number.isFinite 防御方針と整合）。
+    if (!Number.isFinite(target)) {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+      return;
+    }
+
     if (!enabled) {
       if (rafIdRef.current !== null) {
         cancelAnimationFrame(rafIdRef.current);
