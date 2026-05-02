@@ -7,6 +7,8 @@ const SITE_URL =
 // 発生しないようにする。LP の本格的な更新時にこの定数を更新する。
 const LAST_MODIFIED = "2026-05-01";
 
+export const dynamic = "force-static";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = LAST_MODIFIED;
   return [

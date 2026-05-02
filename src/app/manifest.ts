@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
-import { SITE_DESCRIPTION, SITE_NAME } from "./layout";
+import { SITE_DESCRIPTION, SITE_NAME } from "./site-metadata";
+
+export const dynamic = "force-static";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
