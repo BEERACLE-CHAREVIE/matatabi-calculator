@@ -241,13 +241,14 @@ export function InputForm({ onSubmit, className }: InputFormProps) {
   const workerCountAtMax = workerCountNumber >= 1_000;
 
   const adjustWorkerCount = (delta: 1 | -1) => {
-    const current = Number(form.manualWorkerCount.trim() || "0");
-    const next = Math.min(1_000, Math.max(0, Math.floor(current) + delta));
+    const parsed = Number(form.manualWorkerCount.trim() || "0");
+    const base = Number.isFinite(parsed) ? parsed : 0;
+    const next = Math.min(1_000, Math.max(0, Math.floor(base) + delta));
     updateField("manualWorkerCount", String(next));
   };
 
   return (
-    <Card className={cn("p-6 sm:p-8", className)}>
+    <Card className={className}>
       <form noValidate onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
         {/* (1) 月額ベンダー費用 */}
         <div className="space-y-2">
