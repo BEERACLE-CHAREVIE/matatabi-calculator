@@ -38,6 +38,17 @@ const config: Config = {
         // 警告バナー見出し用 (docs/spec/warning-copy.md の 0.05em〜0.08em の中央値)
         warning: "0.06em",
       },
+      keyframes: {
+        // 警告バナー等で使うフェードイン (docs/spec/warning-copy.md §6.4)
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+      },
+      animation: {
+        // motion-safe バリアントと組み合わせ、prefers-reduced-motion 時は自動的に無効化される
+        fadeIn: "fadeIn 300ms ease-out both",
+      },
       ringColor: {
         DEFAULT: "#9CAEB8",
       },
