@@ -1,5 +1,3 @@
-"use client";
-
 /**
  * スピード警告バナー（CRITICAL OPPORTUNITY LOSS）の描画コンポーネント。
  *
@@ -8,6 +6,8 @@
  * - 設計: 表示可否（speedWarning && insourcingLevel !== 1）は親（CalculatePageClient）で
  *         判定し、本コンポーネントは「整形済み message を受け取り描画する」純表示層。
  *         null を返す責務は持たない（仕様書 §4.3.3 の判定フローに準拠）。
+ *         フック・副作用・状態を持たないため `"use client"` 指示子は不要。
+ *         サーバーコンポーネント配下からも安全に再利用できる。
  * - アクセシビリティ: `role="alert"` を付与（暗黙に aria-live="assertive"）。
  *         診断ボタン押下直後に DOM に挿入されるため、即時通知が適切。
  * - アニメーション: `motion-safe:animate-fadeIn` で 300ms フェードイン。
