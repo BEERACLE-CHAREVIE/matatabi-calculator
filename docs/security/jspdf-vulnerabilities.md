@@ -140,26 +140,32 @@
 
 ### 6.4 Next.js 系 high / moderate の扱い（Issue #50 確定）
 
-`npm audit` 実測（2026-05-01）では、本書 §1 の jspdf 系とは別系統で、Next.js 周辺の高位脆弱性が併せて報告される。本書のスコープ外だが、Issue #50 の受け入れ条件 (b)「high 脆弱性も方針が文書化されている（即対応 / 別 Issue 化）」を満たすため、本節で扱いを明記する。
+> **ステータス: 移行完了（2026-05-02、Issue #53 / Issue #64 にて解消）。** 本節は判断履歴として残置する。実装上の Next.js 系 advisory は §6.4.1 の表のとおりすべて 0 件化済み。
 
-| 区分 | 主な advisory 経路 | 重大度 | 修正版 |
-|---|---|---|---|
-| `next` 本体 | next の複数 advisory + 推移依存 `postcss` 経由 | high | `next@16.2.4` 以降 |
-| `glob` | `@next/eslint-plugin-next` と相互に推移依存（`glob` 自体の advisory が plugin 経由で連鎖） | high | `next@16` の依存解決追従 |
-| `eslint-config-next` | `@next/eslint-plugin-next` 経由 | high | `next@16` の依存解決追従 |
-| `@next/eslint-plugin-next` | `glob` と相互に推移依存 | high | `next@16` の依存解決追従 |
-| `postcss` | `next` の推移依存 | moderate | `next@16` の依存解決追従 |
+`npm audit` 実測（2026-05-01）では、本書 §1 の jspdf 系とは別系統で、Next.js 周辺の高位脆弱性が併せて報告された。本書のスコープ外だが、Issue #50 の受け入れ条件 (b)「high 脆弱性も方針が文書化されている（即対応 / 別 Issue 化）」を満たすため、本節で扱いを明記する。
 
-#### 6.4.1 即時更新しない理由
+| 区分 | 主な advisory 経路 | 重大度 | 修正版 | 解消状態 |
+|---|---|---|---|---|
+| `next` 本体 | next の複数 advisory + 推移依存 `postcss` 経由 | high | `next@16.2.4` 以降 | ✅ 解消（Issue #64 で `next@16.2.4` 採用） |
+| `glob` | `@next/eslint-plugin-next` と相互に推移依存（`glob` 自体の advisory が plugin 経由で連鎖） | high | `next@16` の依存解決追従 | ✅ 解消（`next@16` への lockfile 再解決で除去） |
+| `eslint-config-next` | `@next/eslint-plugin-next` 経由 | high | `next@16` の依存解決追従 | ✅ 解消（`eslint-config-next@^16` 採用） |
+| `@next/eslint-plugin-next` | `glob` と相互に推移依存 | high | `next@16` の依存解決追従 | ✅ 解消（`next@16` への lockfile 再解決で除去） |
+| `postcss` | `next` の推移依存 | moderate | `next@16` の依存解決追従 | ✅ 解消（`next@16.2.4` がネスト依存に `postcss@8.4.31` を pin していたため、`package.json` の `overrides` で `postcss@^8.5.10` を全体に強制し解消） |
 
-- 本リポジトリは `next@14.2.35` で App Router / `next/font/local` / `@cloudflare/next-on-pages` 連携を前提に運用される（`.claude/issue-order.md` フェーズ 3 / `README.md` の Cloudflare Pages 設定）。
-- `next@14 → next@16` は **メジャー 2 段飛び**（v14 → v15 → v16）。Breaking changes の影響範囲（App Router の細部、middleware API、画像最適化、`next/font/local` の挙動）を Issue #50 のスコープで吸収するのは過大。
-- `@cloudflare/next-on-pages` が `next@16` の Edge Runtime 仕様変更にどこまで追従済みかも別途検証が必要。
+#### 6.4.1 即時更新しない理由（履歴）
+
+> **過去の判断（Issue #50 起票時点 2026-05-01）。** Issue #53 / Issue #64 で `next@16.2.4` への移行が完了したため、本節は履歴として残す。
+
+- Issue #50 起票時点では、本リポジトリは `next@14.2.35` で App Router / `next/font/local` / `@cloudflare/next-on-pages` 連携を前提に運用されると想定されていた（当時の `.claude/issue-order.md` フェーズ 3 / `README.md` の Cloudflare Pages 設定の記述に基づく）。
+- ※ 本リポジトリでは `next/font/local` 不使用、`@cloudflare/next-on-pages` 未導入。当時の Issue #50 起票文の記述に準じて履歴として記録（実態調査は `docs/security/nextjs-15-16-migration-notes.md §3` を参照）。
+- `next@14 → next@16` は **メジャー 2 段飛び**（v14 → v15 → v16）。Breaking changes の影響範囲（App Router の細部、middleware API、画像最適化、`next/font/local` の挙動）を Issue #50 のスコープで吸収するのは過大と判断した。
+- `@cloudflare/next-on-pages` が `next@16` の Edge Runtime 仕様変更にどこまで追従済みかも別途検証が必要と想定されていた（実際には `@cloudflare/next-on-pages` 未導入で、`output: "export"` による静的アップロード運用のため検証不要だった）。
 
 #### 6.4.2 別 Issue 化方針
 
 - 「Next.js 14 → 16 メジャー更新」は **Issue #53** として切り出し済み（2026-05-01 起票）。`postcss` / `glob` は `next` の依存解決に追従する形で同時更新する想定。
 - 本 Issue（#50）完了時点では、`.github/workflows/security-audit.yml` の `audit-level=critical` を維持し、high レベルの CI 赤化は当面起こさない運用とする（critical 1 件の赤化のみ §6.2 に従って許容）。
+- **Issue #53 / Issue #64 にて移行完了**（2026-05-02、`next@16.2.4` / `eslint-config-next@^16.0.0` / `eslint@^9` 採用、`postcss` は `overrides` で `^8.5.10` に強制）。`security-audit.yml` の `audit-level=critical` は据え置き継続（jspdf critical 1 件の赤化許容運用も §6.2 のまま継続）。
 
 ## 7. レビュー観点（Issue #5 担当者向け申し送り）
 

@@ -35,7 +35,7 @@
 
 ### **2.1. フロントエンド**
 
-* **Framework:** Next.js 14+ (App Router採用)  
+* **Framework:** Next.js 16+ (App Router採用)  
 * **Language:** TypeScript (静的型付けによる堅牢性の確保)  
 * **Styling:** Tailwind CSS (ユーティリティファーストによる高速開発)  
 * **Icons:** Lucide-react (クリーンなベクターアイコン)
