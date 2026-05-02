@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import { InputForm } from "@/components/calculate/InputForm";
 import { WarningBanner } from "@/components/calculate/WarningBanner";
-import { Button } from "@/components/ui/Button";
 import { calculate, type CalculationInput } from "@/lib/calculation";
 import { buildCriticalOpportunityLossMessage } from "@/lib/messages";
 import type { ResultDashboardProps } from "@/components/calculate/ResultDashboard";
@@ -37,6 +36,8 @@ export function CalculatePageClient() {
           key={resultKey}
           result={result}
           insourcingLevel={submitted.insourcingLevel}
+          inputs={submitted}
+          onResetRequest={() => setSubmitted(null)}
           headerSlot={
             showWarningBanner ? (
               <WarningBanner
@@ -45,28 +46,6 @@ export function CalculatePageClient() {
                 )}
               />
             ) : undefined
-          }
-          footerSlot={
-            <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-              <Button
-                variant="primary"
-                size="lg"
-                type="button"
-                disabled
-                aria-disabled="true"
-                title="PDF ダウンロード機能は Issue #43 で実装予定"
-              >
-                PDF をダウンロード
-              </Button>
-              <Button
-                variant="secondary"
-                size="lg"
-                type="button"
-                onClick={() => setSubmitted(null)}
-              >
-                再診断する
-              </Button>
-            </div>
           }
         />
       ) : null}
