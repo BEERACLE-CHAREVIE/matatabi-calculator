@@ -1,0 +1,101 @@
+# 設計根拠: Issue #49（GitHub Actions CI 整備 — lint / typecheck / test / build を PR・push で並列実行）
+# 関連 Issue: #48（test ジョブ初版から有効化、ae1949e でマージ済み）
+#             #50（audit は security-audit.yml に集約。本ワークフローでは扱わない）
+# E2E（Playwright）はブラウザインストール時間で 5 分目安を超過するため本ワークフロー対象外。
+# 必要時に別ワークフローで追加検討する。
+name: ci
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+# 同一 PR で連続 push が走った場合に古いジョブを自動キャンセルし、Actions 利用枠を節約する。
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # .nvmrc を Node バージョンの真実の源とする（ローカル `nvm use` と一致）
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+  typecheck:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run typecheck
+        run: npm run typecheck
+
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests (Jest)
+        # --ci で snapshot 自動更新を抑止、--runInBand で flake を抑える
+        run: npm test -- --ci --runInBand
+
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run build
+        # next build は output: "export" で out/ を生成
+        run: npm run build
