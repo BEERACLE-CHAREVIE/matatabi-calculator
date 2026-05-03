@@ -27,6 +27,7 @@
  */
 
 import { useMemo, type ReactNode } from "react";
+import Link from "next/link";
 import {
   Bar,
   BarChart,
@@ -36,7 +37,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Loader2, PiggyBank, Sparkles } from "lucide-react";
+import { Loader2, PiggyBank, RefreshCw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/cn";
@@ -63,9 +64,16 @@ export interface DashboardViewProps {
   animatedTotal: number;
   isMobile: boolean;
   onDownloadPdf: () => void;
+  /** Issue #47: PDF 生成失敗時の「再試行」ボタン押下ハンドラ。 */
+  onPdfRetry: () => void;
   onResetRequest?: () => void;
   isGeneratingPdf: boolean;
   pdfError: string | null;
+  /**
+   * Issue #47: PDF 連続失敗回数が閾値 (3 回) に達したかどうか。
+   * `true` のときは再試行ボタンに代えて `/contact` への案内リンクを表示する。
+   */
+  pdfErrorIsEscalated: boolean;
   headerSlot?: ReactNode;
   className?: string;
 }
@@ -80,9 +88,11 @@ export function DashboardView({
   animatedTotal,
   isMobile,
   onDownloadPdf,
+  onPdfRetry,
   onResetRequest,
   isGeneratingPdf,
   pdfError,
+  pdfErrorIsEscalated,
   headerSlot,
   className,
 }: DashboardViewProps) {
@@ -289,9 +299,31 @@ export function DashboardView({
           ) : null}
         </div>
         {pdfError ? (
-          <p role="alert" className="text-sm text-[#B45656]">
-            {pdfError}
-          </p>
+          <div
+            role="alert"
+            className="flex flex-col items-center gap-2 text-center"
+          >
+            <p className="text-sm text-[#B45656]">{pdfError}</p>
+            {pdfErrorIsEscalated ? (
+              <Link
+                href="/contact"
+                className="text-sm font-medium text-ink underline underline-offset-4 hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              >
+                お問い合わせフォームへ
+              </Link>
+            ) : (
+              <Button
+                variant="secondary"
+                size="md"
+                type="button"
+                onClick={onPdfRetry}
+                disabled={isGeneratingPdf}
+              >
+                <RefreshCw aria-hidden="true" className="h-4 w-4" />
+                <span>再試行</span>
+              </Button>
+            )}
+          </div>
         ) : null}
       </div>
     </section>

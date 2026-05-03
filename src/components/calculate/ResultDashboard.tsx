@@ -20,14 +20,21 @@
  *           隠しマウント JSX は `DashboardView` には移さず本コンテナに残置する。
  *         - Recharts は SSR 段階で `ResizeObserver` 等のブラウザ API に依存するため、
  *           呼び出し側（CalculatePageClient）で `next/dynamic({ ssr: false })` を経由する。
+ * - PDF エラーハンドリング (Issue #47):
+ *         - 旧仕様の「5 秒で `pdfError` を自動消去」は廃止。再試行ボタン併設仕様
+ *           （Issue #47）と論理的に両立しないため、エラー表示は「ユーザーアクション
+ *           （再試行 / 再診断）」または「成功時」のみクリアする方針へ変更。
+ *         - `pdfFailureCount` を `useState` で保持し、3 回連続失敗時のみエスカレーション
+ *           文言（お問い合わせフォーム案内）を表示する。成功時 / 再診断時に 0 リセット。
+ *         - `trackEvent` で `pdf_generation_error` / `pdf_generation_error_escalated` を
+ *           送出する（CF Web Analytics は no-op スタブだが計測点を実装側に確保する）。
  * - 依存: @/hooks/useCountUp／@/hooks/useMediaQuery／@/lib/mediaQueries／
- *         @/lib/calculation／@/lib/constants／@/lib/pdf（dynamic import 内蔵）／
+ *         @/lib/analytics／@/lib/calculation／@/lib/constants／@/lib/pdf（dynamic import 内蔵）／
  *         @/lib/pdfFilename／./DashboardView／./PdfDashboard
  */
 
 import {
   useCallback,
-  useEffect,
   useRef,
   useState,
   type ReactNode,
@@ -35,12 +42,16 @@ import {
 import { useCountUp } from "@/hooks/useCountUp";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { MOBILE_QUERY, REDUCED_MOTION_QUERY } from "@/lib/mediaQueries";
+import { trackEvent } from "@/lib/analytics";
 import type { InsourcingLevel } from "@/lib/constants";
 import type { CalculationInput, CalculationOutput } from "@/lib/calculation";
 import { generatePdf } from "@/lib/pdf";
 import { buildPdfFilename } from "@/lib/pdfFilename";
 import { DashboardView } from "./DashboardView";
 import { PdfDashboard } from "./PdfDashboard";
+
+// Issue #47: 連続失敗 3 回でエスカレーション文言（お問い合わせ案内）に切替。
+const PDF_FAILURE_ESCALATION_THRESHOLD = 3;
 
 export type ResultDashboardProps = {
   /** calculate() の戻り値（円単位の浮動小数）。 */
@@ -80,18 +91,14 @@ export function ResultDashboard({
 
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  // Issue #47: PDF 生成の連続失敗回数。3 回でエスカレーション文言に切替。
+  // 成功時 / 再診断時に 0 リセットし「連続」性を担保する。
+  const [pdfFailureCount, setPdfFailureCount] = useState(0);
   const [generatedAt, setGeneratedAt] = useState<Date | null>(null);
   const pdfDashboardRef = useRef<HTMLDivElement | null>(null);
-  // 早期 return 用に最新フラグを ref で保持し、`useCallback` の deps を空にして
+  // 早期 return 用に最新フラグを ref で保持し、`useCallback` の deps を最小化して
   // ハンドラ参照を安定させる（`<Button onClick>` の不要な props 変化を抑制）。
   const isGeneratingPdfRef = useRef(false);
-
-  // 仕様書 docs/spec/pdf-report.md §8.3: エラーメッセージは 5 秒で自動消去。
-  useEffect(() => {
-    if (!pdfError) return;
-    const tid = setTimeout(() => setPdfError(null), 5000);
-    return () => clearTimeout(tid);
-  }, [pdfError]);
 
   const handleDownloadPdf = useCallback(async () => {
     if (isGeneratingPdfRef.current) return;
@@ -115,18 +122,36 @@ export function ResultDashboard({
         element,
         filename: buildPdfFilename(now),
       });
+      setPdfFailureCount(0);
     } catch (err) {
       // 仕様書 §8.3: コンソールに詳細を出力しつつ、UI には固定文言を表示。
       console.error("[PDF generation failed]", err);
+      const nextCount = pdfFailureCount + 1;
+      setPdfFailureCount(nextCount);
       setPdfError(
-        "PDFの生成に失敗しました。ページを再読み込みして再度お試しください。",
+        nextCount >= PDF_FAILURE_ESCALATION_THRESHOLD
+          ? "PDF の生成に複数回失敗しました。お手数ですが、お問い合わせフォームからご連絡ください。"
+          : "PDFの生成に失敗しました。再試行してください。",
+      );
+      // Issue #47: `error.message` は個人情報混入リスクがあるためイベント名のみ送出。
+      trackEvent(
+        nextCount >= PDF_FAILURE_ESCALATION_THRESHOLD
+          ? "pdf_generation_error_escalated"
+          : "pdf_generation_error",
       );
     } finally {
       setIsGeneratingPdf(false);
       setGeneratedAt(null);
       isGeneratingPdfRef.current = false;
     }
-  }, []);
+  }, [pdfFailureCount]);
+
+  // Issue #47: 再診断時は PDF エラー表示と連続失敗カウンタを併せてリセット。
+  const handleResetRequest = useCallback(() => {
+    setPdfError(null);
+    setPdfFailureCount(0);
+    onResetRequest?.();
+  }, [onResetRequest]);
 
   const animatedSavings = useCountUp(result.threeYearSavings);
   const animatedAnnualProfit = useCountUp(result.annualProfitCreation);
@@ -145,9 +170,13 @@ export function ResultDashboard({
         animatedTotal={animatedTotal}
         isMobile={isMobile}
         onDownloadPdf={handleDownloadPdf}
-        onResetRequest={onResetRequest}
+        onPdfRetry={handleDownloadPdf}
+        onResetRequest={onResetRequest ? handleResetRequest : undefined}
         isGeneratingPdf={isGeneratingPdf}
         pdfError={pdfError}
+        pdfErrorIsEscalated={
+          pdfFailureCount >= PDF_FAILURE_ESCALATION_THRESHOLD
+        }
         headerSlot={headerSlot}
         className={className}
       />

@@ -2,9 +2,10 @@
  * ResultDashboard (画面コンテナ) コンポーネントテスト。
  *
  * - 仕様: docs/spec/result-dashboard.md §10.2（コンテナ責務）/
- *         docs/spec/pdf-report.md §8（PDF 生成フロー）/ §8.3（5 秒自動消去）
+ *         docs/spec/pdf-report.md §8（PDF 生成フロー）/
+ *         Issue #47（計算/PDF 生成エラー時のフォールバック UI 整備）
  * - 戦略: pure な描画は DashboardView.test.tsx に委譲し、本テストは副作用層
- *         （pdfError 5 秒消去 / 二重起動防止 / generatePdf モック呼び出し）に絞る。
+ *         （二重起動防止 / generatePdf モック呼び出し / 連続失敗エスカレーション）に絞る。
  *         PdfDashboard と @/lib/pdf を jest.mock で差し替え、html2canvas / jsPDF を回避。
  *         PdfDashboard のモックは forwardRef を実装し、ResultDashboard 側の
  *         `pdfDashboardRef` に実 DOM ノードを渡す（generatePdf 呼び出しの前提）。
@@ -122,8 +123,15 @@ describe("ResultDashboard: PDF 生成フロー", () => {
     });
   });
 
-  it("pdfError は 5 秒で自動消去される (§8.3)", async () => {
-    generatePdfMock.mockRejectedValue(new Error("boom"));
+});
+
+describe("ResultDashboard: PDF エラー時のリトライと連続失敗エスカレーション (Issue #47)", () => {
+  const ERROR_MESSAGE_NORMAL = "PDFの生成に失敗しました。再試行してください。";
+  const ERROR_MESSAGE_ESCALATED =
+    "PDF の生成に複数回失敗しました。お手数ですが、お問い合わせフォームからご連絡ください。";
+
+  it("PDF 生成失敗時にエラーメッセージと再試行ボタンが表示される", async () => {
+    generatePdfMock.mockRejectedValueOnce(new Error("boom"));
     const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     const user = userEvent.setup();
 
@@ -137,28 +145,142 @@ describe("ResultDashboard: PDF 生成フロー", () => {
 
     await user.click(screen.getByRole("button", { name: /PDF をダウンロード/ }));
 
-    // エラー文言が出現するまで待機 (rejected Promise + setTimeout を react が flush)
     await waitFor(() =>
-      expect(
-        screen.getByText(
-          "PDFの生成に失敗しました。ページを再読み込みして再度お試しください。",
-        ),
-      ).toBeInTheDocument(),
+      expect(screen.getByText(ERROR_MESSAGE_NORMAL)).toBeInTheDocument(),
     );
-
-    // 5 秒後に消えることを実時間で待機 (waitFor の既定タイムアウト 1 秒では足りないため拡張)
-    await waitFor(
-      () =>
-        expect(
-          screen.queryByText(
-            "PDFの生成に失敗しました。ページを再読み込みして再度お試しください。",
-          ),
-        ).not.toBeInTheDocument(),
-      { timeout: 6_000, interval: 200 },
-    );
+    expect(
+      screen.getByRole("button", { name: /再試行/ }),
+    ).toBeInTheDocument();
 
     errorSpy.mockRestore();
-  }, 10_000);
+  });
+
+  it("再試行ボタンクリックで generatePdf が再呼び出しされる", async () => {
+    generatePdfMock
+      .mockRejectedValueOnce(new Error("boom"))
+      .mockResolvedValueOnce(undefined);
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const user = userEvent.setup();
+
+    render(
+      <ResultDashboard
+        result={result}
+        insourcingLevel={0.25 as InsourcingLevel}
+        inputs={inputs}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /PDF をダウンロード/ }));
+    await waitFor(() =>
+      expect(screen.getByText(ERROR_MESSAGE_NORMAL)).toBeInTheDocument(),
+    );
+
+    await user.click(screen.getByRole("button", { name: /再試行/ }));
+    await waitFor(() => expect(generatePdfMock).toHaveBeenCalledTimes(2));
+
+    errorSpy.mockRestore();
+  });
+
+  it("3 回連続失敗でエスカレーション文言と /contact リンクが表示される", async () => {
+    generatePdfMock.mockRejectedValue(new Error("boom"));
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const user = userEvent.setup();
+
+    render(
+      <ResultDashboard
+        result={result}
+        insourcingLevel={0.25 as InsourcingLevel}
+        inputs={inputs}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /PDF をダウンロード/ }));
+    await waitFor(() => expect(generatePdfMock).toHaveBeenCalledTimes(1));
+    await screen.findByText(ERROR_MESSAGE_NORMAL);
+
+    await user.click(screen.getByRole("button", { name: /再試行/ }));
+    await waitFor(() => expect(generatePdfMock).toHaveBeenCalledTimes(2));
+    await screen.findByText(ERROR_MESSAGE_NORMAL);
+
+    await user.click(screen.getByRole("button", { name: /再試行/ }));
+    await waitFor(() => expect(generatePdfMock).toHaveBeenCalledTimes(3));
+    await screen.findByText(ERROR_MESSAGE_ESCALATED);
+
+    const contactLink = screen.getByRole("link", { name: "お問い合わせフォームへ" });
+    expect(contactLink).toHaveAttribute("href", "/contact");
+    expect(
+      screen.queryByRole("button", { name: /再試行/ }),
+    ).not.toBeInTheDocument();
+
+    errorSpy.mockRestore();
+  });
+
+  it("成功時に pdfFailureCount がリセットされる (連続性が壊れる)", async () => {
+    generatePdfMock
+      .mockRejectedValueOnce(new Error("boom-1"))
+      .mockRejectedValueOnce(new Error("boom-2"))
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("boom-4"));
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const user = userEvent.setup();
+
+    render(
+      <ResultDashboard
+        result={result}
+        insourcingLevel={0.25 as InsourcingLevel}
+        inputs={inputs}
+      />,
+    );
+
+    // 1 回目失敗
+    await user.click(screen.getByRole("button", { name: /PDF をダウンロード/ }));
+    await waitFor(() => expect(generatePdfMock).toHaveBeenCalledTimes(1));
+    await screen.findByText(ERROR_MESSAGE_NORMAL);
+
+    // 2 回目失敗
+    await user.click(screen.getByRole("button", { name: /再試行/ }));
+    await waitFor(() => expect(generatePdfMock).toHaveBeenCalledTimes(2));
+    await screen.findByText(ERROR_MESSAGE_NORMAL);
+
+    // 3 回目成功 (カウンタ 0 リセット)
+    await user.click(screen.getByRole("button", { name: /再試行/ }));
+    await waitFor(() => expect(generatePdfMock).toHaveBeenCalledTimes(3));
+    await waitFor(() =>
+      expect(screen.queryByText(ERROR_MESSAGE_NORMAL)).not.toBeInTheDocument(),
+    );
+
+    // 4 回目失敗 → エスカレーション文言ではなく通常文言が出る
+    await user.click(screen.getByRole("button", { name: /PDF をダウンロード/ }));
+    await waitFor(() => expect(generatePdfMock).toHaveBeenCalledTimes(4));
+    await screen.findByText(ERROR_MESSAGE_NORMAL);
+    expect(screen.queryByText(ERROR_MESSAGE_ESCALATED)).not.toBeInTheDocument();
+
+    errorSpy.mockRestore();
+  });
+
+  it("エラーメッセージが role=\"alert\" で支援技術に通知される", async () => {
+    generatePdfMock.mockRejectedValueOnce(new Error("boom"));
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const user = userEvent.setup();
+
+    render(
+      <ResultDashboard
+        result={result}
+        insourcingLevel={0.25 as InsourcingLevel}
+        inputs={inputs}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /PDF をダウンロード/ }));
+    await waitFor(() =>
+      expect(screen.getByText(ERROR_MESSAGE_NORMAL)).toBeInTheDocument(),
+    );
+
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent(ERROR_MESSAGE_NORMAL);
+
+    errorSpy.mockRestore();
+  });
 });
 
 describe("ResultDashboard: onResetRequest", () => {

@@ -27,6 +27,7 @@ const baseResult: CalculationOutput = {
 
 function renderView(overrides: Partial<React.ComponentProps<typeof DashboardView>> = {}) {
   const onDownloadPdf = jest.fn();
+  const onPdfRetry = jest.fn();
   render(
     <DashboardView
       result={baseResult}
@@ -38,12 +39,14 @@ function renderView(overrides: Partial<React.ComponentProps<typeof DashboardView
       animatedTotal={baseResult.totalThreeYearImpact}
       isMobile={false}
       onDownloadPdf={onDownloadPdf}
+      onPdfRetry={onPdfRetry}
       isGeneratingPdf={false}
       pdfError={null}
+      pdfErrorIsEscalated={false}
       {...overrides}
     />,
   );
-  return { onDownloadPdf };
+  return { onDownloadPdf, onPdfRetry };
 }
 
 describe("DashboardView: 3 カード表示", () => {
@@ -118,9 +121,35 @@ describe("DashboardView: PDF ボタン", () => {
     expect(btn).toBeDisabled();
   });
 
-  it("pdfError があると role='alert' で表示", () => {
+  it("pdfError があると role='alert' で表示 + 再試行ボタンが描画される (Issue #47)", () => {
     renderView({ pdfError: "PDF 生成失敗" });
-    expect(screen.getByText("PDF 生成失敗")).toBeInTheDocument();
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("PDF 生成失敗");
+    expect(
+      screen.getByRole("button", { name: /再試行/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "お問い合わせフォームへ" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("pdfErrorIsEscalated=true でお問い合わせリンクが描画され、再試行ボタンは非表示 (Issue #47)", () => {
+    renderView({
+      pdfError: "PDF の生成に複数回失敗しました。",
+      pdfErrorIsEscalated: true,
+    });
+    const link = screen.getByRole("link", { name: "お問い合わせフォームへ" });
+    expect(link).toHaveAttribute("href", "/contact");
+    expect(
+      screen.queryByRole("button", { name: /再試行/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("再試行ボタンクリックで onPdfRetry が呼ばれる (Issue #47)", async () => {
+    const user = userEvent.setup();
+    const { onPdfRetry } = renderView({ pdfError: "PDF 生成失敗" });
+    await user.click(screen.getByRole("button", { name: /再試行/ }));
+    expect(onPdfRetry).toHaveBeenCalledTimes(1);
   });
 });
 
