@@ -150,7 +150,7 @@ const inputBaseClass =
   "aria-[invalid=true]:border-[#B45656]";
 
 const stepperButtonClass =
-  "inline-flex h-11 w-11 items-center justify-center rounded-md border border-line bg-canvas text-lg text-ink " +
+  "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-line bg-canvas text-lg text-ink " +
   "hover:bg-line/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 " +
   "disabled:cursor-not-allowed disabled:opacity-50";
 

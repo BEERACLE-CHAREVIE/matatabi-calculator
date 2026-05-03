@@ -27,7 +27,8 @@ test.describe("ROI 診断ゴールデンパス", () => {
     await page.getByLabel(/改修費用/).fill("30");
     await page.getByLabel(/手作業に従事する人数/).fill("5");
     await page.getByRole("radio", { name: "3〜6ヶ月" }).click();
-    await page.getByRole("radio", { name: /一部内製/ }).click();
+    // sm 以上では `shortLabel`（"一部"）に切り替わるため両方をマッチさせる。
+    await page.getByRole("radio", { name: /^一部(内製)?$/ }).click();
     await page.getByRole("button", { name: "診断する" }).click();
 
     // 結果ダッシュボード

@@ -20,7 +20,7 @@ export function Footer({ className }: FooterProps) {
             <li>
               <Link
                 href="/privacy"
-                className="hover:text-ink hover:underline focus-visible:outline-none focus-visible:underline"
+                className="inline-flex min-h-11 items-center hover:text-ink hover:underline focus-visible:outline-none focus-visible:underline"
               >
                 プライバシーポリシー
               </Link>
@@ -28,7 +28,7 @@ export function Footer({ className }: FooterProps) {
             <li>
               <Link
                 href="/terms"
-                className="hover:text-ink hover:underline focus-visible:outline-none focus-visible:underline"
+                className="inline-flex min-h-11 items-center hover:text-ink hover:underline focus-visible:outline-none focus-visible:underline"
               >
                 利用規約
               </Link>
@@ -36,7 +36,7 @@ export function Footer({ className }: FooterProps) {
             <li>
               <Link
                 href="/contact"
-                className="hover:text-ink hover:underline focus-visible:outline-none focus-visible:underline"
+                className="inline-flex min-h-11 items-center hover:text-ink hover:underline focus-visible:outline-none focus-visible:underline"
               >
                 お問い合わせ
               </Link>
