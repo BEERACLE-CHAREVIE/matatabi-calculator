@@ -1,58 +1,94 @@
 /**
  * PdfDashboard 関連ヘルパーのユニットテスト（Issue #85）。
  *
- * - 仕様: docs/spec/pdf-report.md §5.3 / §9.2 / §11.1
- * - 観点: html2canvas / jsPDF を介する SVG 出力 (LabelList / Legend) は jsdom では
- *         完全再現できないため、テストは「formatter / value 算出ヘルパーの単体検証」に絞る。
- *         実機での被り確認は受け入れ条件（PR チェックリスト）でカバーする。
+ * - 仕様: docs/spec/pdf-report.md §5.3（指標カード value フォントサイズ + Compact 自動降格） /
+ *         §9.2（LabelList の formatter / Legend の wrapperStyle）
+ * - 観点: html2canvas / jsPDF を介する SVG 出力（LabelList / Legend）は jsdom で
+ *         完全再現できないため、レイアウトリグレッション検出は「export ヘルパーの
+ *         単体検証」+「フル render での `toHaveStyle` 検証」の二段構えで行う。
+ *         前段は境界値網羅、後段は MetricCard が export ヘルパーを実際に呼んでいることを
+ *         担保する役割分担。実機での被り確認は受け入れ条件（PR チェックリスト）でカバー。
  */
 
+import { render, screen } from "@testing-library/react";
 import {
-  formatBarLabel,
+  PdfDashboard,
   formatMetricCardValue,
   metricCardValueFontSize,
+  pickPdfBarLabel,
 } from "./PdfDashboard";
+import { formatManYen, formatManYenCompact } from "@/lib/format";
+import type { CalculationInput, CalculationOutput } from "@/lib/calculation";
+import type { InsourcingLevel } from "@/lib/constants";
 
-describe("formatBarLabel: insideLeft / insideRight ラベルの段階降格", () => {
-  it("比率 8% 未満は空文字を返す（描画抑制）", () => {
-    // 1万円 / 1000万円 = 0.001 → 0.1%、十分小さい
-    expect(formatBarLabel(10_000, 10_000_000)).toBe("");
-    // 5%（旧閾値）相当でも空文字
-    expect(formatBarLabel(50, 1000)).toBe("");
+const baseInputs: CalculationInput = {
+  monthlyVendorCost: 1_000_000,
+  repairCost: 500_000,
+  manualWorkerCount: 5,
+  updateWaitMonths: 1.5,
+  insourcingLevel: 0.25 as InsourcingLevel,
+};
+
+function renderPdfDashboard(
+  resultOverrides: Partial<CalculationOutput>,
+  insourcingLevel: InsourcingLevel = 0.25 as InsourcingLevel,
+) {
+  const result: CalculationOutput = {
+    threeYearSavings: 30_375_000,
+    annualProfitCreation: 6_000_000,
+    threeYearProfitCreation: 18_000_000,
+    totalThreeYearImpact: 48_375_000,
+    speedWarning: false,
+    speedWarningMonthlyLoss: 0,
+    insourcingGap: 0.75,
+    ...resultOverrides,
+  };
+  return render(
+    <PdfDashboard
+      result={result}
+      insourcingLevel={insourcingLevel}
+      inputs={baseInputs}
+      generatedAt={new Date("2026-04-23T15:30:00+09:00")}
+    />,
+  );
+}
+
+describe("pickPdfBarLabel", () => {
+  // 比率閾値の境界条件を全て検証することで、Issue #85 で確定した
+  // 「< 8% で抑制 / < 18% で Compact / それ以上で標準」のレイアウト契約を固定する。
+  const TOTAL = 100_000_000_000; // 10,000,000 万円 = 100 億円相当
+
+  it("total <= 0 のとき空文字を返す（ゼロ除算ガード）", () => {
+    expect(pickPdfBarLabel(50, 0)).toBe("");
+    expect(pickPdfBarLabel(50, -10)).toBe("");
   });
 
-  it("比率 8〜18% は formatManYenCompact を返す（短縮万円・億表記）", () => {
-    // 10% 相当: 100万円 / 1000万円
-    expect(formatBarLabel(1_000_000, 10_000_000)).toBe("100万円");
+  it("ratio < 0.08 のとき空文字を返す（衝突抑制）", () => {
+    // 7% < 8% 閾値
+    expect(pickPdfBarLabel(TOTAL * 0.07, TOTAL)).toBe("");
   });
 
-  it("比率 18% 以上は formatManYen を返す（通常の桁区切り表記）", () => {
-    // 50% 相当: 500万円 / 1000万円
-    expect(formatBarLabel(5_000_000, 10_000_000)).toBe("500万円");
+  it("0.08 <= ratio < 0.18 のとき formatManYenCompact と同一文字列を返す", () => {
+    const value = TOTAL * 0.1; // 10%
+    expect(pickPdfBarLabel(value, TOTAL)).toBe(formatManYenCompact(value));
   });
 
-  it("totalImpact が 0 以下の場合は空文字（ゼロ除算回避）", () => {
-    expect(formatBarLabel(100, 0)).toBe("");
-    expect(formatBarLabel(100, -1)).toBe("");
+  it("0.18 <= ratio のとき formatManYen と同一文字列を返す", () => {
+    const value = TOTAL * 0.2; // 20%
+    expect(pickPdfBarLabel(value, TOTAL)).toBe(formatManYen(value));
   });
 
-  it("8% 境界: 直下は空文字、直上は表示", () => {
-    // 7.99%（799 / 10,000）→ 空文字
-    expect(formatBarLabel(799, 10_000)).toBe("");
-    // 8.01%（801 / 10,000）→ 表示（ratio 8〜18% は compact 経路、801 円は 0 万円表記）
-    expect(formatBarLabel(801, 10_000)).not.toBe("");
-  });
-
-  it("18% 境界: 直下と直上ともに同じ「○○万円」表現になる経路で経路差を確認", () => {
-    // 17.99% → compact 経路
-    expect(formatBarLabel(17_990_000, 100_000_000)).toBe("1,799万円");
-    // 18.01% → manYen 経路
-    expect(formatBarLabel(18_010_000, 100_000_000)).toBe("1,801万円");
-  });
-
-  it("億円超の桁爆発ケースで compact 経路が「◯億◯万円」を返す", () => {
-    // value = 12 億円（12_000_000_000 円）、totalImpact = 100 億円 → 比率 12%（compact 経路）
-    expect(formatBarLabel(12_000_000_000, 100_000_000_000)).toBe("12億円");
+  it("8% / 18% 境界の直下・直上で経路が切り替わる", () => {
+    // 7.99%（799 / 10,000）→ 空文字 / 8.01%（801 / 10,000）→ 表示
+    expect(pickPdfBarLabel(799, 10_000)).toBe("");
+    expect(pickPdfBarLabel(801, 10_000)).not.toBe("");
+    // 17.99% → compact 経路 / 18.01% → manYen 経路
+    expect(pickPdfBarLabel(17_990_000, 100_000_000)).toBe(
+      formatManYenCompact(17_990_000),
+    );
+    expect(pickPdfBarLabel(18_010_000, 100_000_000)).toBe(
+      formatManYen(18_010_000),
+    );
   });
 });
 
@@ -99,5 +135,34 @@ describe("metricCardValueFontSize: 値長に応じた段階フォントサイズ
     // "12,345,678万円" (12 chars: 境界) / "1,234億5,678万円" (13 chars)
     expect(metricCardValueFontSize("12,345,678万円")).toBe("13pt");
     expect(metricCardValueFontSize("1,234億5,678万円")).toBe("13pt");
+  });
+});
+
+describe("PdfDashboard: MetricCard が export ヘルパーを実際に呼んでいる", () => {
+  // Recharts SVG は jsdom で部分描画失敗する可能性があるため、ここでは
+  // MetricCard が `formatMetricCardValue` + `metricCardValueFontSize` を確かに
+  // 経由していることだけを「最小限の実 render + toHaveStyle」で担保する。
+  it("通常ケース（万円台）は formatManYen 経路 + 16pt が組み合わされる", () => {
+    renderPdfDashboard({
+      threeYearSavings: 1_000_000,
+      annualProfitCreation: 2_000_000,
+      threeYearProfitCreation: 3_000_000,
+    });
+    const valueElement = screen.getByText("100万円");
+    expect(valueElement).toHaveStyle({ fontSize: "16pt" });
+  });
+
+  it("10 億円超ケースは Compact 降格 + 値長応答フォント縮小が組み合わされる", () => {
+    // 12_345_678 万円 = 123億45,678万円 (length 12) → Compact 経路 + 13pt
+    renderPdfDashboard({
+      threeYearSavings: 123_456_780_000,
+      annualProfitCreation: 234_567_890_000,
+      threeYearProfitCreation: 345_678_900_000,
+    });
+    const expectedLabel = formatMetricCardValue(123_456_780_000);
+    const valueElement = screen.getByText(expectedLabel);
+    expect(valueElement).toHaveStyle({
+      fontSize: metricCardValueFontSize(expectedLabel),
+    });
   });
 });

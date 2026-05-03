@@ -238,11 +238,6 @@ export function DashboardView({
               />
               <Legend
                 verticalAlign="bottom"
-                /*
-                 * Recharts デフォルトの絶対配置で chart 領域と Legend が重なる事象を抑止
-                 * （PDF 側修正と整合）。html2canvas が画面 SS を撮る都合上、画面側でも
-                 * 揃えておかないと PDF 側修正が打ち消される（Issue #85）。
-                 */
                 wrapperStyle={{ position: "relative" }}
                 content={() => (
                   <ul className="flex flex-wrap justify-center gap-x-7 gap-y-2 pt-3 text-[12px] leading-tight text-ink">

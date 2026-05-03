@@ -43,10 +43,23 @@ export interface GeneratePdfOptions {
  *           （仕様書 §11.2 / 脆弱性方針 §2.1 のレビュー粒度を維持するため）。
  */
 export async function generatePdf(options: GeneratePdfOptions): Promise<void> {
+  // html2canvas-pro は html2canvas v1.4.1 (2022 年以降メンテナンス停止) の
+  // アクティブ fork。API ドロップイン互換で、modern CSS / フォント解決 /
+  // SVG レンダリング系のバグが多数修正されており、Issue #85 の文字被り対策の
+  // 一環として Tier 2 で導入（仕様書 §3.1 / §10.2 の方針改定も併せて実施）。
   const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-    import("html2canvas"),
+    import("html2canvas-pro"),
     import("jspdf"),
   ]);
+
+  // Web フォント (Noto Sans JP / Inter, next/font 経由) が解決される前に
+  // html2canvas が走ると、フォントスワップ前後の字形が重畳して文字被りが発生する
+  // （Issue #85）。仕様書 §8.1 の「rAF × 2 待機（DOM レイアウト確定 + フォント解決）」は
+  // rAF だけでは非同期 FontFace 読み込みを保証できないため、`document.fonts.ready` を
+  // 明示的に待つ。
+  if (typeof document !== "undefined" && document.fonts?.ready) {
+    await document.fonts.ready;
+  }
 
   const canvas = await html2canvas(options.element, {
     scale: HTML2CANVAS_SCALE,

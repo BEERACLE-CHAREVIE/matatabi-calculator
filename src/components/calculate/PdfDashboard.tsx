@@ -50,14 +50,7 @@ import {
 
 const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
-// 仕様書 §5.2 表 No.5「グラフ高 42mm」枠は維持しつつ、ResponsiveContainer 内の
-// 描画高（ラベル上下クリップを避ける実効値）を 100 → 120 に引き上げ（Issue #85）。
 const PDF_BAR_HEIGHT_PX = 120;
-// LabelList の描画閾値（合計に対する比率）。8% 未満は描画抑制、
-// 8〜18% は formatManYenCompact、18% 以上は formatManYen を使い、
-// scale=2 ラスタライズ時のラベル衝突を回避する（Issue #85）。
-const LABEL_HIDE_RATIO = 0.08;
-const LABEL_COMPACT_RATIO = 0.18;
 
 const ACCENT_HEX = "#9CAEB8";
 const ACCENT_60 = "rgba(156, 174, 184, 0.6)";
@@ -68,6 +61,50 @@ const WHITE_HEX = "#FFFFFF";
 
 const SAVINGS_LABEL = "3 年間の止血";
 const PROFIT_LABEL = "3 年間の利益創出";
+
+/**
+ * 積み上げ横棒グラフのバー内ラベル文字列を、value / total の比率に応じて
+ * 段階的にフォールバックする。`html2canvas` 後の SVG `<text>` は CSS overflow が
+ * 効かないため、formatter 段階で文字列の長さ自体を抑制する必要がある。
+ *
+ * - `total <= 0`: 空文字（ゼロ除算回避 + チャート未描画時の防御）
+ * - `ratio < 0.08`: バー幅の 8% 未満では `formatManYen` 5〜6 桁の文字列が
+ *   隣接ラベルと衝突するため、描画自体を抑制する
+ * - `0.08 ≤ ratio < 0.18`: `formatManYenCompact` の「◯億◯万円」短縮表記に降格
+ * - `0.18 ≤ ratio`: 既存の `formatManYen` 表記
+ */
+export function pickPdfBarLabel(value: number, total: number): string {
+  if (total <= 0) return "";
+  const ratio = value / total;
+  if (ratio < 0.08) return "";
+  if (ratio < 0.18) return formatManYenCompact(value);
+  return formatManYen(value);
+}
+
+/**
+ * 指標カード value 表示用のフォーマッタ。万円換算後の値が
+ * `OKU_THRESHOLD_MAN_YEN`（10 億円相当）以上の桁爆発時は `formatManYenCompact`
+ * へ自動降格する。MetricCard 幅（56mm）+ value 文字列長応答フォントだけでは
+ * 「100,000万円」級の長文字列が `textOverflow: ellipsis` で見切れるため、
+ * 億円表記に降格して 1 行に収める（Issue #85）。
+ */
+export function formatMetricCardValue(yen: number): string {
+  if (!Number.isFinite(yen) || yen < 0) return formatManYen(yen);
+  const manYen = Math.round(yen / YEN_PER_MAN_YEN);
+  if (manYen >= OKU_THRESHOLD_MAN_YEN) return formatManYenCompact(yen);
+  return formatManYen(yen);
+}
+
+/**
+ * MetricCard の value 文字数に応じた段階的フォントサイズ（Issue #85）。
+ * カード高 34mm + 幅 56mm の枠内に value を 1 行で収めるためのフォールバック。
+ * 仕様書 §5.3 の規定 16pt をベースに、桁爆発時のみ縮小する。
+ */
+export function metricCardValueFontSize(value: string): string {
+  if (value.length > 11) return "13pt";
+  if (value.length > 8) return "14pt";
+  return "16pt";
+}
 
 /**
  * 更新待ち期間の代表値→ラベル変換。`InputForm` の `UPDATE_WAIT_OPTIONS` と同一マッピングを
@@ -108,49 +145,6 @@ function findInsourcingLabel(level: InsourcingLevel): string {
   return INSOURCING_LEVELS.find((entry) => entry.value === level)?.label ?? "—";
 }
 
-/**
- * 積み上げ横棒グラフの insideLeft / insideRight ラベル文字列を、合計に対する
- * 比率に応じて段階的にフォーマット降格させる（Issue #85）。
- *
- * - `ratio < LABEL_HIDE_RATIO` (8%): 空文字（描画抑制）
- * - `LABEL_HIDE_RATIO ≤ ratio < LABEL_COMPACT_RATIO` (8〜18%): `formatManYenCompact`
- * - `LABEL_COMPACT_RATIO ≤ ratio` (18% 以上): `formatManYen`
- *
- * 仕様書 §9.2 で「`LabelList` は `formatter` 段階で文字列降格 + 空文字返却」を確定。
- * SVG `<text>` は `text-overflow: ellipsis` が効かないため formatter 側で吸収する。
- */
-export function formatBarLabel(value: number, totalImpact: number): string {
-  if (totalImpact <= 0) return "";
-  const ratio = value / totalImpact;
-  if (ratio < LABEL_HIDE_RATIO) return "";
-  if (ratio < LABEL_COMPACT_RATIO) return formatManYenCompact(value);
-  return formatManYen(value);
-}
-
-/**
- * MetricCard の value 表示用フォーマッタ。万円換算後の値が
- * `OKU_THRESHOLD_MAN_YEN`（10 億円相当）以上の桁爆発時は `formatManYenCompact`
- * へ自動降格し、3 カード共通で利用する（Issue #85）。
- */
-export function formatMetricCardValue(yen: number): string {
-  if (!Number.isFinite(yen) || yen < 0) return formatManYen(yen);
-  const manYen = Math.round(yen / YEN_PER_MAN_YEN);
-  if (manYen >= OKU_THRESHOLD_MAN_YEN) {
-    return formatManYenCompact(yen);
-  }
-  return formatManYen(yen);
-}
-
-/**
- * MetricCard の value 文字数に応じた段階的フォントサイズ。
- * 桁爆発（億円表記など 12 文字以上）でも 1 行に収まるよう縮小する（Issue #85）。
- */
-export function metricCardValueFontSize(value: string): string {
-  if (value.length > 11) return "13pt";
-  if (value.length > 8) return "14pt";
-  return "16pt";
-}
-
 export interface PdfDashboardProps {
   result: CalculationOutput;
   insourcingLevel: InsourcingLevel;
@@ -176,7 +170,8 @@ function PdfWarningBanner({ headline, subtext }: PdfWarningBannerProps) {
         backgroundColor: ACCENT_BG_10,
         border: `1px solid ${ACCENT_HEX}`,
         borderRadius: "1mm",
-        height: "14mm",
+        minHeight: "14mm",
+        flexShrink: 0,
         boxSizing: "border-box",
       }}
     >
@@ -204,19 +199,13 @@ function PdfWarningBanner({ headline, subtext }: PdfWarningBannerProps) {
             fontWeight: 700,
             letterSpacing: "0.06em",
             textTransform: "uppercase",
-            color: INK_HEX,
             lineHeight: 1.2,
+            color: INK_HEX,
           }}
         >
           {headline}
         </span>
-        <span
-          style={{
-            fontSize: "10pt",
-            color: INK_HEX,
-            lineHeight: 1.35,
-          }}
-        >
+        <span style={{ fontSize: "10pt", lineHeight: 1.35, color: INK_HEX }}>
           {subtext}
         </span>
       </div>
@@ -231,14 +220,15 @@ interface MetricCardProps {
 }
 
 function MetricCard({ title, value, note }: MetricCardProps) {
-  // 値長（億円表記など）に応じて段階的にフォントサイズを縮小し、value と note の縦衝突を防ぐ（Issue #85）。
+  // 仕様書 §5.3 の規定 16pt を維持しつつ、value 文字列が長くなった場合のみ
+  // 段階的に縮小して 36mm のカード高さを守る（Issue #85）。
   const valueFontSize = metricCardValueFontSize(value);
   return (
     <div
       style={{
         border: `1px solid ${LINE_HEX}`,
         borderRadius: "1mm",
-        padding: "6mm 5mm",
+        padding: "5mm 5mm",
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-start",
@@ -246,7 +236,14 @@ function MetricCard({ title, value, note }: MetricCardProps) {
         boxSizing: "border-box",
       }}
     >
-      <div style={{ fontSize: "10pt", fontWeight: 500, color: INK_HEX }}>
+      <div
+        style={{
+          fontSize: "10pt",
+          fontWeight: 500,
+          color: INK_HEX,
+          lineHeight: 1.3,
+        }}
+      >
         {title}
       </div>
       <div
@@ -258,6 +255,10 @@ function MetricCard({ title, value, note }: MetricCardProps) {
           overflow: "hidden",
           textOverflow: "ellipsis",
           fontVariantNumeric: "tabular-nums",
+          // 日本語フォント (Noto Sans JP) は ascent + descent で実効 1.3em 程度を
+          // 必要とする。line-height を 1.05 等に圧縮すると上下が clip されて
+          // 「数字が半分」現象が起きるため、標準的な 1.3 を維持する（Issue #85）。
+          lineHeight: 1.3,
         }}
       >
         {value}
@@ -266,8 +267,9 @@ function MetricCard({ title, value, note }: MetricCardProps) {
         <div
           style={{
             fontSize: "8pt",
-            color: INK_HEX,
-            opacity: 0.7,
+            // INK_HEX の 70% 相当の色を直書きする（opacity を避け、html2canvas-pro の
+            // 二重アルファ合成バグを回避。Issue #85）。
+            color: "#A5988A",
             marginTop: "1mm",
             lineHeight: 1.35,
           }}
@@ -356,19 +358,27 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           display: "flex",
           flexDirection: "column",
           gap: "4mm",
+          // globals.css の `text-rendering: optimizeLegibility` /
+          // `font-feature-settings: "palt" 1` を PDF 経路で override する。
+          // optimizeLegibility は html2canvas-pro のラスタライズで隣接グリフが
+          // サブピクセル単位で重畳して「うっすら二重」に見える原因になる。
+          // PDF は静止画像で読みやすさより**ピクセル安定性**を優先するため
+          // geometricPrecision に固定し、palt 詰めも無効化する（Issue #85）。
+          textRendering: "geometricPrecision",
+          fontFeatureSettings: "normal",
         }}
       >
-        {/*
-         * ヘッダー: フォントサイズ差（14pt / 10pt）の中央揃えだと行ボックス高で baseline が
-         * 揃わないため、コンテナを `alignItems: baseline` に変更し、ロゴ画像のみ
-         * `alignSelf: center` で個別に中央揃え（Issue #85）。
-         */}
+        {/* ヘッダー: 14pt と 10pt のフォント高差で center 揃えがブレるため
+            baseline 揃えに固定。ロゴのみ alignSelf: center で別途センタリング（Issue #85）。
+            ルート flex column 内で `flexShrink: 0` により他セクションが膨らんでも
+            ヘッダーが圧縮されないことを保証（Issue #85 の文字被り regression 対策）。 */}
         <div
           style={{
             display: "flex",
             alignItems: "baseline",
             justifyContent: "space-between",
-            height: "18mm",
+            minHeight: "18mm",
+            flexShrink: 0,
             paddingBottom: "3mm",
             borderBottom: `1px solid ${LINE_HEX}`,
             boxSizing: "border-box",
@@ -385,8 +395,8 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
               margin: 0,
               fontSize: "14pt",
               fontWeight: 700,
-              color: INK_HEX,
               lineHeight: 1,
+              color: INK_HEX,
             }}
           >
             {PDF_REPORT_TITLE}
@@ -394,9 +404,10 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           <span
             style={{
               fontSize: "10pt",
-              color: INK_HEX,
-              opacity: 0.8,
               lineHeight: 1,
+              // INK_HEX の 80% 相当の色を直書き（opacity を避けて html2canvas-pro の
+              // アルファ合成バグを回避。Issue #85）。
+              color: "#8E8278",
               fontVariantNumeric: "tabular-nums",
             }}
           >
@@ -412,7 +423,8 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           />
         ) : null}
 
-        {/* ヒーロー（3年間のトータルインパクト） */}
+        {/* ヒーロー（3年間のトータルインパクト）。ルート flex column 内で
+            `flexShrink: 0` により他セクションが膨らんでも圧縮されないことを保証。 */}
         <div
           style={{
             display: "flex",
@@ -420,11 +432,12 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
             alignItems: "center",
             justifyContent: "center",
             gap: "2mm",
-            height: "42mm",
+            minHeight: "42mm",
+            flexShrink: 0,
             boxSizing: "border-box",
           }}
         >
-          <div style={{ fontSize: "10pt", color: INK_HEX, opacity: 0.8 }}>
+          <div style={{ fontSize: "10pt", color: "#8E8278" }}>
             3 年間のトータルインパクト
           </div>
           <div
@@ -437,23 +450,27 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           >
             {formatManYenCompact(result.totalThreeYearImpact)}
           </div>
-          <div style={{ fontSize: "10pt", color: INK_HEX, opacity: 0.6 }}>
+          <div style={{ fontSize: "10pt", color: "#A99F94" }}>
             ※ 試算上の最大値
           </div>
         </div>
 
-        {/*
-         * 指標カード 3 並列。固定 `height: 34mm` だと value 桁爆発時に note と縦衝突するため、
-         * `gridAutoRows: minmax(34mm, auto)` で「最小高は維持しつつ必要に応じて伸長」へ
-         * 切り替えている（Issue #85）。仕様書 §5.2 で警告発動時 18mm の余裕があるため、
-         * 6mm 程度の伸長ではレイアウト破綻しない。
-         */}
+        {/* 指標カード 3 並列。value 文字列が長い場合のみカード高さが伸長する
+            (gridAutoRows: minmax(34mm, auto))。下方 note との衝突を物理的に回避（Issue #85）。
+            カード間 gap は 5mm に圧縮し、180mm = 56×3 + 6×2 → 56×3 + 5×2 で
+            value 横幅にマージンを追加（formatMetricCardValue の Compact 降格と組み合わせて
+            「100,000万円」級の長文字列でも 1 行収納）。 */}
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",
+            // 仕様書 §5.3 の規定 34mm をベースに +4mm の余裕を確保し、
+            // value の line-height（1.3em × 16pt ≒ 7.4mm）+ ascent/descent +
+            // padding 縦 10mm + title 5mm + gap 2mm + (note 4mm) でも
+            // box clip 無く収まるようにする（Issue #85）。
+            gridAutoRows: "minmax(38mm, auto)",
             gap: "5mm",
-            gridAutoRows: "minmax(34mm, auto)",
+            flexShrink: 0,
             boxSizing: "border-box",
           }}
         >
@@ -477,16 +494,18 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
         </div>
 
         {/* 積み上げ横棒グラフ */}
-        <div style={{ height: "42mm", boxSizing: "border-box" }}>
+        <div
+          style={{
+            minHeight: "42mm",
+            flexShrink: 0,
+            boxSizing: "border-box",
+          }}
+        >
           <ResponsiveContainer width="100%" height={PDF_BAR_HEIGHT_PX}>
             <BarChart
               data={chartData}
               layout="vertical"
-              /*
-               * margin.right を 24 → 36 に拡張し、insideRight ラベルが描画矩形外に
-               * はみ出さないバッファを確保する（Issue #85）。
-               */
-              margin={{ top: 8, right: 36, bottom: 8, left: 16 }}
+              margin={{ top: 8, right: 36, bottom: 8, left: 24 }}
             >
               <XAxis
                 type="number"
@@ -496,23 +515,20 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
               <YAxis type="category" dataKey="label" hide />
               <Legend
                 verticalAlign="bottom"
-                /*
-                 * Recharts デフォルトの絶対配置で chart 領域と Legend が重なる事象を抑止
-                 * するため `position: relative` + `marginTop` を明示（Issue #85）。
-                 */
                 wrapperStyle={{ position: "relative", marginTop: "2mm" }}
                 content={() => (
                   <ul
                     style={{
                       display: "flex",
                       justifyContent: "center",
+                      alignItems: "baseline",
                       gap: "12mm",
                       margin: 0,
                       padding: "2mm 0 0 0",
                       listStyle: "none",
                       fontSize: "9pt",
-                      color: INK_HEX,
                       lineHeight: 1.4,
+                      color: INK_HEX,
                     }}
                   >
                     <li
@@ -530,7 +546,12 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
                         style={{ verticalAlign: "middle", flexShrink: 0 }}
                       />
                       <span>{SAVINGS_LABEL}</span>
-                      <span style={{ fontWeight: 600 }}>
+                      <span
+                        style={{
+                          fontWeight: 600,
+                          fontVariantNumeric: "tabular-nums",
+                        }}
+                      >
                         {formatManYen(result.threeYearSavings)}
                       </span>
                     </li>
@@ -549,7 +570,12 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
                         style={{ verticalAlign: "middle", flexShrink: 0 }}
                       />
                       <span>{PROFIT_LABEL}</span>
-                      <span style={{ fontWeight: 600 }}>
+                      <span
+                        style={{
+                          fontWeight: 600,
+                          fontVariantNumeric: "tabular-nums",
+                        }}
+                      >
                         {formatManYen(result.threeYearProfitCreation)}
                       </span>
                     </li>
@@ -568,7 +594,7 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
                   dataKey="savings"
                   position="insideLeft"
                   formatter={(value: number) =>
-                    formatBarLabel(
+                    pickPdfBarLabel(
                       value,
                       result.threeYearSavings + result.threeYearProfitCreation,
                     )
@@ -595,12 +621,10 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
                   dataKey="profit"
                   position="insideRight"
                   formatter={(value: number) =>
-                    // formatBarLabel は比率に応じて
-                    // ・< 8% 描画抑制
-                    // ・8〜18% formatManYenCompact（億表記または短縮万円）
-                    // ・>= 18% formatManYen
-                    // を返し、insideLeft / insideRight ラベルの衝突を回避する（Issue #85）。
-                    formatBarLabel(
+                    // バー内ラベルは scale=2 ラスタライズ後に隣接ラベルと衝突しやすい。
+                    // pickPdfBarLabel が比率に応じて空文字 / Compact 表記 / 標準表記を
+                    // 切り替える（< 8% 抑制、< 18% で Compact、それ以上で標準）。
+                    pickPdfBarLabel(
                       value,
                       result.threeYearSavings + result.threeYearProfitCreation,
                     )
@@ -622,7 +646,8 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
         {/* カテゴリ訴求（プレースホルダ） */}
         <div
           style={{
-            height: "14mm",
+            minHeight: "14mm",
+            flexShrink: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -638,12 +663,14 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           {PDF_CATEGORY_PLACEHOLDER}
         </div>
 
-        {/* 入力サマリー */}
+        {/* 入力サマリー。`flexShrink: 0` でルート flex column 内の圧縮を防ぎ、
+            最終行 (詳細設定) が直下の disclaimer に縦衝突する事象を回避（Issue #85）。 */}
         <dl
           style={{
             margin: 0,
             padding: 0,
-            height: "40mm",
+            minHeight: "40mm",
+            flexShrink: 0,
             boxSizing: "border-box",
             display: "flex",
             flexDirection: "column",
@@ -671,14 +698,18 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           <SummaryRow label="詳細設定" value={advancedLabel} />
         </dl>
 
-        {/* 免責 */}
+        {/* 免責。`flexShrink: 0` で他セクションと縦衝突しないことを保証。
+            `opacity` は html2canvas-pro のラスタ時にサブピクセルでズレた 2 枚の
+            アルファ合成が走る経験則的バグがあり、disclaimer の「下部の文字被り」を
+            誘発するため、INK_HEX の 70% 相当を直書きカラー (#A5988A) で代替する（Issue #85）。 */}
         <p
           style={{
             margin: 0,
             fontSize: "8pt",
-            color: INK_HEX,
-            opacity: 0.7,
-            height: "8mm",
+            color: "#A5988A",
+            minHeight: "10mm",
+            flexShrink: 0,
+            lineHeight: 1.5,
             boxSizing: "border-box",
           }}
         >
@@ -694,7 +725,8 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            height: "13mm",
+            minHeight: "13mm",
+            flexShrink: 0,
             paddingTop: "3mm",
             borderTop: `1px solid ${LINE_HEX}`,
             boxSizing: "border-box",
