@@ -155,6 +155,20 @@ README 冒頭に CI バッジを置きたい場合は以下を参考に追加し
 - オン／オフ: `NEXT_PUBLIC_CF_BEACON_TOKEN` の有無で分岐。Preview / ローカルは送信オフ
 - 法令対応: 電気通信事業法 外部送信規律はプライバシーポリシー §5 への記載で対応（バナー不採用）。`docs/legal/REASONING.md` 参照
 
+## 計算ロジックの前提値出典
+
+ROI 試算で使用するデフォルト値は、以下の公的統計および業界調査に基づきます。最新の出典詳細・採用ロジック・更新ポリシーは [`docs/spec/calculation-logic.md §3`](./docs/spec/calculation-logic.md) を参照してください。
+
+| 値 | 採用値 | 主たる出典 | 取得日 |
+|---|---|---|---|
+| 時給 (`DEFAULT_HOURLY_WAGE`) | 2,500 円/時 | [厚生労働省「賃金構造基本統計調査 令和7年速報」](https://www.mhlw.go.jp/toukei/itiran/roudou/chingin/kouzou/z2025/sokuhou.html)（中小企業ホワイトカラー所定内給与＋賞与＋社保事業主負担の実質時給レンジ下限） | 2026-05-04 |
+| 1 日あたり手作業時間 (`DEFAULT_HOURS_PER_DAY`) | 2 時間/日 | [BPO テクノロジー「会社員の業務実態調査」](https://prtimes.jp/main/html/rd/p/000000011.000086224.html)（ノンコア業務時間中央値レンジ 1〜3 時間/日の中央値） | 2026-05-04 |
+| 月あたり稼働日数 (`DEFAULT_DAYS_PER_MONTH`) | 20 日/月 | [厚生労働省「就労条件総合調査 令和7年」](https://www.mhlw.go.jp/toukei/itiran/roudou/jikan/syurou/25/dl/gaikyou.pdf)（中小企業 30〜99 人 年間休日 111.2 日 + 年休取得 12.1 日 = 実稼働 約 240 日/年） | 2026-05-04 |
+| 年あたり改修回数 (`REPAIRS_PER_YEAR`) | 3 回/年 | システム保守業界通念（四半期改修＋軽微 1 回除外）／補完: [システム幹事 2026 年最新版](https://system-kanji.com/posts/system-development-maintenance-cost-quote) | 2026-05-04 |
+| 内製化 5 段階 (`INSOURCING_LEVELS`) | 0 / 0.25 / 0.5 / 0.75 / 1.0 | [中小企業庁「2025 年版 中小企業白書」](https://www.chusho.meti.go.jp/pamflet/hakusyo/2025/PDF/2025gaiyou.pdf)（粒度の妥当性検証） | 2026-05-04 |
+
+> Issue #90 で旧版「説明ロジックのみ」から本出典付きセクションに格上げ。Phase 1 の一次情報メモは `working/issue-90/research/` に保管。
+
 ## ライセンス
 
 Proprietary. © 株式会社ねこにまたたび

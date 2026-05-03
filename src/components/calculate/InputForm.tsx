@@ -360,7 +360,7 @@ export function InputForm({ onSubmit, className }: InputFormProps) {
             </label>
           }
           unit="万円 / 月"
-          help="現在ベンダーに支払っている IT 関連の月額費用（保守・運用・開発受託等の合計）"
+          help="現在ベンダーに支払っている IT 関連の月額費用（保守・運用・開発受託等の合計）。中小企業の典型レンジは月額 1〜500 万円"
           error={errors.monthlyVendorCostManYen}
           errorId={errorId("monthlyVendorCostManYen")}
           helpId={helpId("monthlyVendorCostManYen")}
@@ -413,7 +413,7 @@ export function InputForm({ onSubmit, className }: InputFormProps) {
             </label>
           }
           unit="万円 / 回"
-          help="1 回あたりの改修・機能追加の発注費用。年 3 回想定で試算します"
+          help="1 回あたりの改修・機能追加の発注費用。四半期改修＋軽微 1 回除外で年 3 回想定で試算します（業界通念）"
           error={errors.repairCostManYen}
           errorId={errorId("repairCostManYen")}
           helpId={helpId("repairCostManYen")}
@@ -466,7 +466,7 @@ export function InputForm({ onSubmit, className }: InputFormProps) {
             </label>
           }
           unit="人"
-          help="手作業・定型業務に従事している人数。AI 自動化の対象人数を試算します"
+          help="手作業・定型業務に従事している人数。AI 自動化の対象人数を試算します（時給 2,500 円・1 日 2 時間・月 20 日の業界標準値で計算）"
           error={errors.manualWorkerCount}
           errorId={errorId("manualWorkerCount")}
           helpId={helpId("manualWorkerCount")}
