@@ -228,15 +228,25 @@ function MetricCard({ title, value, note }: MetricCardProps) {
       style={{
         border: `1px solid ${LINE_HEX}`,
         borderRadius: "1mm",
-        padding: "6mm 5mm",
+        padding: "5mm 5mm",
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-start",
-        gap: "2mm",
+        gap: "1.5mm",
         boxSizing: "border-box",
+        // grid cell の `minmax(34mm, auto)` 内に絶対収まることを保証し、
+        // value の descender などが card 下端を突き抜ける事象を抑止する（Issue #85）。
+        overflow: "hidden",
       }}
     >
-      <div style={{ fontSize: "10pt", fontWeight: 500, color: INK_HEX }}>
+      <div
+        style={{
+          fontSize: "10pt",
+          fontWeight: 500,
+          color: INK_HEX,
+          lineHeight: 1.2,
+        }}
+      >
         {title}
       </div>
       <div
@@ -248,7 +258,9 @@ function MetricCard({ title, value, note }: MetricCardProps) {
           overflow: "hidden",
           textOverflow: "ellipsis",
           fontVariantNumeric: "tabular-nums",
-          lineHeight: 1.15,
+          // ascender / descender が card padding を突き抜けないよう
+          // line-height を抑える（Issue #85）。
+          lineHeight: 1.05,
         }}
       >
         {value}
@@ -259,8 +271,8 @@ function MetricCard({ title, value, note }: MetricCardProps) {
             fontSize: "8pt",
             color: INK_HEX,
             opacity: 0.7,
-            marginTop: "1mm",
-            lineHeight: 1.35,
+            marginTop: "0.5mm",
+            lineHeight: 1.3,
           }}
         >
           {note}
