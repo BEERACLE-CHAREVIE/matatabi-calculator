@@ -37,6 +37,27 @@ describe("InputForm: 送信成功パス", () => {
       insourcingLevel: 0.25,
     });
   });
+
+  it("月額ベンダー費用 0 万円が受理され onSubmit に 0 が渡る", async () => {
+    const user = userEvent.setup();
+    const { onSubmit } = renderForm();
+
+    await user.type(screen.getByLabelText(/月額ベンダー費用/), "0");
+    await user.type(screen.getByLabelText(/改修費用/), "30");
+    await user.type(screen.getByLabelText(/手作業に従事する人数/), "5");
+    await user.click(screen.getByRole("radio", { name: "3〜6ヶ月" }));
+    await user.click(screen.getByRole("radio", { name: /一部内製/ }));
+
+    await user.click(screen.getByRole("button", { name: "診断する" }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      monthlyVendorCost: 0,
+      repairCost: 300_000,
+      manualWorkerCount: 5,
+      updateWaitMonths: 4.5,
+      insourcingLevel: 0.25,
+    });
+  });
 });
 
 describe("InputForm: バリデーション", () => {
@@ -58,6 +79,17 @@ describe("InputForm: バリデーション", () => {
     await user.click(screen.getByRole("button", { name: "診断する" }));
     expect(
       screen.getByText("10,000 万円以下で入力してください"),
+    ).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("月額が下限境界外 (-1) でエラー", async () => {
+    const user = userEvent.setup();
+    const { onSubmit } = renderForm();
+    await user.type(screen.getByLabelText(/月額ベンダー費用/), "-1");
+    await user.click(screen.getByRole("button", { name: "診断する" }));
+    expect(
+      screen.getByText("0 万円以上で入力してください"),
     ).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
   });

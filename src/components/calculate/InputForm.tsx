@@ -75,7 +75,7 @@ function validateMonthlyVendor(raw: string): { error?: string; value?: number } 
     return { error: "整数で入力してください" };
   }
   const n = Number(trimmed);
-  if (n < 1) return { error: "1 万円以上で入力してください" };
+  if (n < 0) return { error: "0 万円以上で入力してください" };
   if (n > 10_000) return { error: "10,000 万円以下で入力してください" };
   return { value: n };
 }
@@ -379,7 +379,7 @@ export function InputForm({ onSubmit, className }: InputFormProps) {
               id={fieldId("monthlyVendorCostManYen")}
               type="number"
               inputMode="numeric"
-              min={1}
+              min={0}
               max={10_000}
               step={1}
               placeholder="例: 50"
