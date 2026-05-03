@@ -27,18 +27,21 @@ export function SectionEyebrow({
   return (
     <div
       className={[
-        "flex items-center gap-3 text-[11px] font-medium uppercase tracking-warning",
+        "flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.22em]",
         palette.text,
         alignmentClass,
       ].join(" ")}
     >
       <span
         aria-hidden="true"
-        className="tabular-nums text-base font-semibold text-accent"
+        className="fig-mono text-[15px] font-semibold text-accent"
       >
         {number}
       </span>
-      <span aria-hidden="true" className={`h-px w-10 ${palette.rule}`} />
+      <span
+        aria-hidden="true"
+        className={`h-px w-10 origin-left animate-rule-grow ${palette.rule}`}
+      />
       <span>{label}</span>
     </div>
   );

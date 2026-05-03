@@ -47,6 +47,18 @@
   }
 
   /*
+   * 紙の上下方向の温度差。Hero / 各セクションのベース substrate に重ねる。
+   */
+  .bg-paper-warm {
+    background-image: linear-gradient(
+      180deg,
+      #f5f0e6 0%,
+      #f8f6f2 60%,
+      #f8f6f2 100%
+    );
+  }
+
+  /*
    * 手書き風ブラシ下線: <span className="underline-brush"> で文字を囲うと
    * 末尾に accent (#9CAEB8) 系の波線が走る。SVG をベースラインに配置。
    */
@@ -58,8 +70,56 @@
     padding-bottom: 0.18em;
   }
 
+  /*
+   * 編集デザイン用の "ink-stamp" 二重下線。Hero 強調語に使う。
+   */
+  .underline-stamp {
+    background-image:
+      linear-gradient(transparent calc(100% - 0.14em), #72665b calc(100% - 0.14em) calc(100% - 0.06em), transparent calc(100% - 0.06em)),
+      linear-gradient(transparent calc(100% - 0.04em), #9caeb8 calc(100% - 0.04em) 100%, transparent 100%);
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    padding-bottom: 0.16em;
+  }
+
+  /*
+   * 縦書き (tate-gaki)。装飾用の小さなラベルでのみ使用。
+   * 斜体は無効化されるため、letter-spacing と font-feature-settings に依存。
+   */
+  .tate-gaki {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-feature-settings: "vert" 1, "vrt2" 1;
+    letter-spacing: 0.18em;
+  }
+
+  /*
+   * 数字専用ユーティリティ。tabular-nums + 小さな lining-figures 強制。
+   */
+  .fig-mono {
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums lining-nums;
+    letter-spacing: -0.01em;
+  }
+
   .animate-fade-up {
     animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .animate-rule-grow {
+    animation: rule-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /*
+   * NumericTicker の wrapper。pointer hover で停止。
+   */
+  .ticker-track {
+    will-change: transform;
+  }
+  .ticker-track:hover,
+  .ticker-track:focus-within {
+    animation-play-state: paused;
   }
 }
 
@@ -74,8 +134,23 @@
   }
 }
 
+@keyframes rule-grow {
+  from {
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+  to {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-fade-up {
+  .animate-fade-up,
+  .animate-rule-grow {
     animation: none;
+  }
+  .animate-ticker {
+    animation: none !important;
   }
 }

@@ -12,3 +12,13 @@ export { ClosingCta } from "./ClosingCta";
 export type { ClosingCtaProps } from "./ClosingCta";
 export { SectionEyebrow } from "./SectionEyebrow";
 export type { SectionEyebrowProps } from "./SectionEyebrow";
+export { NumericTicker } from "./NumericTicker";
+export type { NumericTickerProps } from "./NumericTicker";
+export {
+  AlertRulerIcon,
+  CoinStackIcon,
+  FileExportIcon,
+  HourglassThinIcon,
+  LedgerCalcIcon,
+  TrendDownLineIcon,
+} from "./icons";

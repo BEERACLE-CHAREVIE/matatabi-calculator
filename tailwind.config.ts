@@ -18,13 +18,38 @@ const config: Config = {
         ink: "#72665B",
         line: "#BEB5AA",
         accent: "#9CAEB8",
+
+        paper: {
+          warm: "#F5F0E6",
+          cool: "#EFEEEA",
+        },
       },
       fontFamily: {
         sans: [
-          "var(--font-inter)",
+          "var(--font-fraunces)",
           "var(--font-noto-sans-jp)",
           "system-ui",
           "sans-serif",
+        ],
+        display: [
+          "var(--font-fraunces)",
+          "var(--font-shippori-mincho)",
+          "Georgia",
+          "serif",
+        ],
+        mincho: [
+          "var(--font-shippori-mincho)",
+          "Georgia",
+          "ヒラギノ明朝 ProN",
+          "Yu Mincho",
+          "serif",
+        ],
+        mono: [
+          "var(--font-jetbrains-mono)",
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "monospace",
         ],
       },
       boxShadow: {
@@ -39,15 +64,18 @@ const config: Config = {
         warning: "0.06em",
       },
       keyframes: {
-        // 警告バナー等で使うフェードイン (docs/spec/warning-copy.md §6.4)
         fadeIn: {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
+        ticker: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
       },
       animation: {
-        // motion-safe バリアントと組み合わせ、prefers-reduced-motion 時は自動的に無効化される
         fadeIn: "fadeIn 300ms ease-out both",
+        ticker: "ticker 60s linear infinite",
       },
       ringColor: {
         DEFAULT: "#9CAEB8",
