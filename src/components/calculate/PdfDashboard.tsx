@@ -221,7 +221,7 @@ interface MetricCardProps {
 
 function MetricCard({ title, value, note }: MetricCardProps) {
   // 仕様書 §5.3 の規定 16pt を維持しつつ、value 文字列が長くなった場合のみ
-  // 段階的に縮小して 34mm のカード高さを守る（Issue #85）。
+  // 段階的に縮小して 36mm のカード高さを守る（Issue #85）。
   const valueFontSize = metricCardValueFontSize(value);
   return (
     <div
@@ -232,11 +232,8 @@ function MetricCard({ title, value, note }: MetricCardProps) {
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-start",
-        gap: "1.5mm",
+        gap: "2mm",
         boxSizing: "border-box",
-        // grid cell の `minmax(34mm, auto)` 内に絶対収まることを保証し、
-        // value の descender などが card 下端を突き抜ける事象を抑止する（Issue #85）。
-        overflow: "hidden",
       }}
     >
       <div
@@ -244,7 +241,7 @@ function MetricCard({ title, value, note }: MetricCardProps) {
           fontSize: "10pt",
           fontWeight: 500,
           color: INK_HEX,
-          lineHeight: 1.2,
+          lineHeight: 1.3,
         }}
       >
         {title}
@@ -258,9 +255,10 @@ function MetricCard({ title, value, note }: MetricCardProps) {
           overflow: "hidden",
           textOverflow: "ellipsis",
           fontVariantNumeric: "tabular-nums",
-          // ascender / descender が card padding を突き抜けないよう
-          // line-height を抑える（Issue #85）。
-          lineHeight: 1.05,
+          // 日本語フォント (Noto Sans JP) は ascent + descent で実効 1.3em 程度を
+          // 必要とする。line-height を 1.05 等に圧縮すると上下が clip されて
+          // 「数字が半分」現象が起きるため、標準的な 1.3 を維持する（Issue #85）。
+          lineHeight: 1.3,
         }}
       >
         {value}
@@ -271,8 +269,8 @@ function MetricCard({ title, value, note }: MetricCardProps) {
             fontSize: "8pt",
             color: INK_HEX,
             opacity: 0.7,
-            marginTop: "0.5mm",
-            lineHeight: 1.3,
+            marginTop: "1mm",
+            lineHeight: 1.35,
           }}
         >
           {note}
@@ -456,7 +454,11 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",
-            gridAutoRows: "minmax(34mm, auto)",
+            // 仕様書 §5.3 の規定 34mm をベースに +4mm の余裕を確保し、
+            // value の line-height（1.3em × 16pt ≒ 7.4mm）+ ascent/descent +
+            // padding 縦 10mm + title 5mm + gap 2mm + (note 4mm) でも
+            // box clip 無く収まるようにする（Issue #85）。
+            gridAutoRows: "minmax(38mm, auto)",
             gap: "5mm",
             flexShrink: 0,
             boxSizing: "border-box",
