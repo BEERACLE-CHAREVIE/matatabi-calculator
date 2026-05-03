@@ -170,7 +170,8 @@ function PdfWarningBanner({ headline, subtext }: PdfWarningBannerProps) {
         backgroundColor: ACCENT_BG_10,
         border: `1px solid ${ACCENT_HEX}`,
         borderRadius: "1mm",
-        height: "14mm",
+        minHeight: "14mm",
+        flexShrink: 0,
         boxSizing: "border-box",
       }}
     >
@@ -349,13 +350,16 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
         }}
       >
         {/* ヘッダー: 14pt と 10pt のフォント高差で center 揃えがブレるため
-            baseline 揃えに固定。ロゴのみ alignSelf: center で別途センタリング（Issue #85）。 */}
+            baseline 揃えに固定。ロゴのみ alignSelf: center で別途センタリング（Issue #85）。
+            ルート flex column 内で `flexShrink: 0` により他セクションが膨らんでも
+            ヘッダーが圧縮されないことを保証（Issue #85 の文字被り regression 対策）。 */}
         <div
           style={{
             display: "flex",
             alignItems: "baseline",
             justifyContent: "space-between",
-            height: "18mm",
+            minHeight: "18mm",
+            flexShrink: 0,
             paddingBottom: "3mm",
             borderBottom: `1px solid ${LINE_HEX}`,
             boxSizing: "border-box",
@@ -399,7 +403,8 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           />
         ) : null}
 
-        {/* ヒーロー（3年間のトータルインパクト） */}
+        {/* ヒーロー（3年間のトータルインパクト）。ルート flex column 内で
+            `flexShrink: 0` により他セクションが膨らんでも圧縮されないことを保証。 */}
         <div
           style={{
             display: "flex",
@@ -407,7 +412,8 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
             alignItems: "center",
             justifyContent: "center",
             gap: "2mm",
-            height: "42mm",
+            minHeight: "42mm",
+            flexShrink: 0,
             boxSizing: "border-box",
           }}
         >
@@ -440,6 +446,7 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
             gridTemplateColumns: "1fr 1fr 1fr",
             gridAutoRows: "minmax(34mm, auto)",
             gap: "5mm",
+            flexShrink: 0,
             boxSizing: "border-box",
           }}
         >
@@ -463,7 +470,13 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
         </div>
 
         {/* 積み上げ横棒グラフ */}
-        <div style={{ height: "42mm", boxSizing: "border-box" }}>
+        <div
+          style={{
+            minHeight: "42mm",
+            flexShrink: 0,
+            boxSizing: "border-box",
+          }}
+        >
           <ResponsiveContainer width="100%" height={PDF_BAR_HEIGHT_PX}>
             <BarChart
               data={chartData}
@@ -609,7 +622,8 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
         {/* カテゴリ訴求（プレースホルダ） */}
         <div
           style={{
-            height: "14mm",
+            minHeight: "14mm",
+            flexShrink: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -625,12 +639,14 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           {PDF_CATEGORY_PLACEHOLDER}
         </div>
 
-        {/* 入力サマリー */}
+        {/* 入力サマリー。`flexShrink: 0` でルート flex column 内の圧縮を防ぎ、
+            最終行 (詳細設定) が直下の disclaimer に縦衝突する事象を回避（Issue #85）。 */}
         <dl
           style={{
             margin: 0,
             padding: 0,
-            height: "40mm",
+            minHeight: "40mm",
+            flexShrink: 0,
             boxSizing: "border-box",
             display: "flex",
             flexDirection: "column",
@@ -658,14 +674,16 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           <SummaryRow label="詳細設定" value={advancedLabel} />
         </dl>
 
-        {/* 免責 */}
+        {/* 免責。`flexShrink: 0` で他セクションと縦衝突しないことを保証。 */}
         <p
           style={{
             margin: 0,
             fontSize: "8pt",
             color: INK_HEX,
             opacity: 0.7,
-            height: "8mm",
+            minHeight: "8mm",
+            flexShrink: 0,
+            lineHeight: 1.4,
             boxSizing: "border-box",
           }}
         >
@@ -681,7 +699,8 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            height: "13mm",
+            minHeight: "13mm",
+            flexShrink: 0,
             paddingTop: "3mm",
             borderTop: `1px solid ${LINE_HEX}`,
             boxSizing: "border-box",
