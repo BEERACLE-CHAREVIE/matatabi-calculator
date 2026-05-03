@@ -49,6 +49,50 @@ npm run typecheck
 npm run lint
 ```
 
+## CI / 品質ゲート
+
+本リポジトリは GitHub Actions で以下 2 ワークフローを運用しています。
+
+| ワークフロー | トリガ | 内容 |
+| --- | --- | --- |
+| `.github/workflows/ci.yml` | `pull_request` / `push`（`main` / `develop`） | `lint` / `typecheck` / `test` / `build` を 4 ジョブで並列実行 |
+| `.github/workflows/security-audit.yml` | `pull_request` / `push`（`main` / `develop`）+ 週次 schedule（毎週月曜 09:00 JST 相当）+ `workflow_dispatch` | `npm audit --audit-level=critical` を実行（high / moderate は到達不能判定済み。`docs/security/jspdf-vulnerabilities.md §6` 参照） |
+
+E2E（Playwright）はブラウザインストールに時間がかかるため CI には含めていません。必要時に別ワークフローでの追加を検討します。
+
+### ローカルで CI 同等の検証を再現
+
+```bash
+npm ci
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+### branch protection 設定手順（リポジトリ管理者向け）
+
+CI を必須化するには GitHub 側で branch protection を設定してください。
+
+1. GitHub リポジトリの **Settings → Branches → Branch protection rules** で `main` と `develop` をそれぞれ保護対象に追加
+2. **Require a pull request before merging** を有効化
+3. **Require status checks to pass before merging** を有効化し、必須チェックとして以下 4 つを選択（少なくとも 1 度ワークフローが実行されると候補に表示される）
+   - `ci / lint`
+   - `ci / typecheck`
+   - `ci / test`
+   - `ci / build`
+4. `security-audit / audit` は週次運用が主目的のため必須チェックからは除外する（PR 単位の合否と週次運用が混在すると CI 体感が悪化するため）
+5. **Require branches to be up to date before merging** は任意（`develop` のリベース運用方針に応じて選択）
+6. **Restrict who can push to matching branches** を必要に応じて有効化
+
+### CI バッジ（任意）
+
+README 冒頭に CI バッジを置きたい場合は以下を参考に追加してください（本 Issue では追加しません）。
+
+```markdown
+![ci](https://github.com/<owner>/<repo>/actions/workflows/ci.yml/badge.svg?branch=develop)
+```
+
 ## デプロイ
 
 本リポジトリは Cloudflare Pages のダッシュボードで GitHub 連携を構成済みで、push をトリガーに自動デプロイされます。本番 URL は `https://roi.nekonimatatabi.com`（Apex を正規ホストとして運用）。
