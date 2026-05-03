@@ -43,8 +43,12 @@ export interface GeneratePdfOptions {
  *           （仕様書 §11.2 / 脆弱性方針 §2.1 のレビュー粒度を維持するため）。
  */
 export async function generatePdf(options: GeneratePdfOptions): Promise<void> {
+  // html2canvas-pro は html2canvas v1.4.1 (2022 年以降メンテナンス停止) の
+  // アクティブ fork。API ドロップイン互換で、modern CSS / フォント解決 /
+  // SVG レンダリング系のバグが多数修正されており、Issue #85 の文字被り対策の
+  // 一環として Tier 2 で導入（仕様書 §3.1 / §10.2 の方針改定も併せて実施）。
   const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-    import("html2canvas"),
+    import("html2canvas-pro"),
     import("jspdf"),
   ]);
 
