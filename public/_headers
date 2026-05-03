@@ -1,0 +1,22 @@
+# Cloudflare Pages Response Headers
+#
+# 本ファイルは Next.js の `public/` 配下にあるため、ビルド時に `out/_headers` として
+# 出力ルートへコピーされ、Cloudflare Pages が自動認識して以下のヘッダを応答に付与する。
+# 公式仕様: https://developers.cloudflare.com/pages/configuration/headers/
+#
+# 注意:
+# Cloudflare ダッシュボード側 (SSL/TLS → Edge Certificates → HSTS UI / Transform Rules /
+# Security Headers) では同じヘッダを設定しないこと。本ファイルとの重複設定により
+# `Strict-Transport-Security` などが衝突する。HSTS UI は Disable にしておくこと。
+#
+# HSTS 段階導入:
+# 初期値は max-age=300 (5 分)。1〜2 週間の安定運用を確認した後、別 Issue にて
+# `max-age=31536000; includeSubDomains` へ昇格する PR を作成する。Preload 申請は
+# さらに後段の別 Issue で扱う。
+
+/*
+  Strict-Transport-Security: max-age=300
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
