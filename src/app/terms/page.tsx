@@ -12,9 +12,6 @@ export default function TermsPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 sm:px-8">
       <article className="text-ink">
-        <p className="mb-6 rounded-md border border-line/60 bg-line/10 p-3 text-sm text-ink/80">
-          ⚠️ 本ドキュメントはドラフトです。最終版は法務レビュー後に確定します。
-        </p>
         <h1 className="text-2xl font-bold sm:text-3xl">利用規約</h1>
         <p className="mt-4 text-sm leading-relaxed sm:text-base">
           本利用規約（以下「本規約」といいます）は、株式会社ねこにまたたび（以下「当社」といいます）が提供する
@@ -124,7 +121,7 @@ export default function TermsPage() {
         </section>
 
         <section className="mt-8 border-t border-line/60 pt-6">
-          <p className="text-sm text-ink/70">制定日: 2026-XX-XX（法務レビュー後に確定）</p>
+          <p className="text-sm text-ink/70">制定日: 2026-05-11</p>
           <p className="mt-3 text-sm">
             <Link href="/" className="text-accent hover:underline">
               ← トップページへ戻る
