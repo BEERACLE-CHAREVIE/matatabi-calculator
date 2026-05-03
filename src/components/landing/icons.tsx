@@ -96,12 +96,11 @@ export function TrendDownLineIcon({ className }: IconProps) {
 export function FileExportIcon({ className }: IconProps) {
   return (
     <svg {...COMMON} className={className} aria-hidden="true">
-      <path d="M7 3h7l4 4v14a0 0 0 0 1 0 0H7a0 0 0 0 1 0 0V3z" />
+      <path d="M7 3h7l4 4v14H7z" />
       <path d="M14 3v4h4" />
       <path d="M9.5 12h5" strokeWidth="0.7" opacity="0.6" />
       <path d="M9.5 14.5h5" strokeWidth="0.7" opacity="0.6" />
       <path d="M9.5 17h3" strokeWidth="0.7" opacity="0.6" />
-      <path d="M14.5 18.5l3 1.7-3 1.7" opacity="0" />
       {/* down-export 矢印 */}
       <path d="M16.5 16.5v3.5" />
       <path d="M15 18.7l1.5 1.5 1.5-1.5" />

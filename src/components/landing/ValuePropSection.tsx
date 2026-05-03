@@ -24,11 +24,7 @@ export function ValuePropSection({ items }: ValuePropSectionProps) {
   return (
     <section
       aria-labelledby="value-heading"
-      className="relative overflow-hidden bg-paper-cool px-4 py-24 sm:px-8 sm:py-32"
-      style={{
-        backgroundImage:
-          "linear-gradient(180deg, #efeeea 0%, #f3f1ec 100%)",
-      }}
+      className="relative overflow-hidden bg-[linear-gradient(180deg,_#efeeea_0%,_#f3f1ec_100%)] px-4 py-24 sm:px-8 sm:py-32"
     >
       <div
         aria-hidden="true"

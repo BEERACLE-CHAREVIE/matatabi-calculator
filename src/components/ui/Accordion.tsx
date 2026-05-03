@@ -23,7 +23,10 @@ export function Accordion({ items, className }: AccordionProps) {
           >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-5 px-6 py-5 [&::-webkit-details-marker]:hidden">
               <div className="flex items-baseline gap-4">
-                <span className="fig-mono text-[12px] text-ink/50">
+                <span
+                  aria-hidden="true"
+                  className="fig-mono text-[12px] text-ink/50"
+                >
                   Q.{String(index + 1).padStart(2, "0")}
                 </span>
                 <span className="font-mincho text-[15px] font-medium leading-snug text-ink sm:text-base">
@@ -37,7 +40,10 @@ export function Accordion({ items, className }: AccordionProps) {
             </summary>
             <div className="border-t border-line/40 px-6 py-5">
               <div className="flex items-start gap-4">
-                <span className="fig-mono mt-0.5 text-[12px] text-accent">
+                <span
+                  aria-hidden="true"
+                  className="fig-mono mt-0.5 text-[12px] text-accent"
+                >
                   A.
                 </span>
                 <p className="text-[14px] leading-[1.9] text-ink/80">

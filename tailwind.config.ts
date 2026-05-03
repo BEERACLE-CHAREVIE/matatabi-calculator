@@ -72,15 +72,10 @@ const config: Config = {
           "0%": { transform: "translateX(0)" },
           "100%": { transform: "translateX(-50%)" },
         },
-        countSlideUp: {
-          "0%": { opacity: "0", transform: "translateY(40%)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
       },
       animation: {
         fadeIn: "fadeIn 300ms ease-out both",
         ticker: "ticker 60s linear infinite",
-        countSlideUp: "countSlideUp 1.1s cubic-bezier(0.22, 1, 0.36, 1) both",
       },
       ringColor: {
         DEFAULT: "#9CAEB8",

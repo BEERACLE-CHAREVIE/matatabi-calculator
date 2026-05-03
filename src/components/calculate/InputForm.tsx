@@ -197,7 +197,10 @@ function FieldRow({
     <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:gap-x-7 sm:gap-y-2">
       {/* 番号列 */}
       <div className="flex items-baseline gap-3 sm:flex-col sm:items-start sm:gap-1.5 sm:pt-0.5">
-        <span className="fig-mono text-[12px] text-ink/45">
+        <span
+          aria-hidden="true"
+          className="fig-mono text-[12px] text-ink/45"
+        >
           Q.{String(index).padStart(2, "0")}
           <span className="ml-0.5 text-ink/30">/05</span>
         </span>

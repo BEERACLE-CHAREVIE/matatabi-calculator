@@ -34,19 +34,10 @@ export function NumericTicker({ entries = DEFAULT_ENTRIES, className }: NumericT
         className ?? "",
       ].join(" ")}
     >
-      <div
-        aria-hidden="true"
-        className="bg-grain pointer-events-none absolute inset-0 opacity-60"
-      />
+      <div className="bg-grain pointer-events-none absolute inset-0 opacity-60" />
       {/* 端のグラデーションフェード */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-paper-warm to-transparent sm:w-24"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-paper-warm to-transparent sm:w-24"
-      />
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-paper-warm to-transparent sm:w-24" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-paper-warm to-transparent sm:w-24" />
 
       <div className="ticker-track flex w-max animate-ticker py-5 sm:py-6">
         {all.map((entry, index) => (
