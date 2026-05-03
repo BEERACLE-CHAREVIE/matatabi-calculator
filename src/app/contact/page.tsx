@@ -23,7 +23,7 @@ export default function ContactPage() {
           <p className="mt-2 text-sm leading-relaxed sm:text-base">
             <a
               href="mailto:nekonimatatabi@nekonimatatabi.com"
-              className="text-accent hover:underline"
+              className="inline-flex min-h-11 items-center text-accent hover:underline"
             >
               nekonimatatabi@nekonimatatabi.com
             </a>
@@ -45,7 +45,10 @@ export default function ContactPage() {
 
         <section className="mt-8 border-t border-line/60 pt-6">
           <p className="text-sm">
-            <Link href="/" className="text-accent hover:underline">
+            <Link
+              href="/"
+              className="inline-flex min-h-11 items-center text-accent hover:underline"
+            >
               ← トップページへ戻る
             </Link>
           </p>

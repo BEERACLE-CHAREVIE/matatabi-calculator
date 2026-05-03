@@ -35,7 +35,7 @@ export function Header({ className, cta }: HeaderProps = {}) {
         <Link
           href="/"
           aria-label="またたび計算機 トップページ"
-          className="inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          className="inline-flex min-h-11 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         >
           <Image
             src="/brand/logo-header.svg"
@@ -53,7 +53,7 @@ export function Header({ className, cta }: HeaderProps = {}) {
             "inline-flex items-center justify-center gap-2 rounded-md font-medium",
             "border border-line bg-canvas text-ink hover:bg-line/30",
             "transition-colors duration-150",
-            "h-9 px-3 text-sm sm:h-10 sm:px-4 sm:text-base",
+            "h-11 px-3 text-sm sm:px-4 sm:text-base",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
           )}
         >
