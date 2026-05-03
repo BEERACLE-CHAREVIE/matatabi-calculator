@@ -360,7 +360,7 @@ export function InputForm({ onSubmit, className }: InputFormProps) {
             </label>
           }
           unit="万円 / 月"
-          help="現在ベンダーに支払っている IT 関連の月額費用（保守・運用・開発受託等の合計）。中小企業の典型レンジは月額 1〜500 万円"
+          help="現在ベンダーに支払っている IT 関連の月額費用（保守・運用・開発受託等の合計）。中小企業の典型レンジは月額 1〜500 万円（1 億円までは入力可）"
           error={errors.monthlyVendorCostManYen}
           errorId={errorId("monthlyVendorCostManYen")}
           helpId={helpId("monthlyVendorCostManYen")}
