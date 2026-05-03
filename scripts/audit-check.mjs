@@ -42,17 +42,13 @@ const ALLOWED_GHSA_IDS = new Set([
 
 const GHSA_ID_RE = /GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}/i;
 
-function extractGhsaId(via) {
+// `npm audit --json` では `via[].url` に GitHub Advisory URL が必ず入る。
+// `via[].source` は数値（advisory ID 整数）のため GHSA-ID 抽出には使わない。
+export function extractGhsaId(via) {
   if (!via || typeof via !== "object") return null;
-  if (typeof via.url === "string") {
-    const m = via.url.match(GHSA_ID_RE);
-    if (m) return m[0];
-  }
-  if (typeof via.source === "string") {
-    const m = via.source.match(GHSA_ID_RE);
-    if (m) return m[0];
-  }
-  return null;
+  if (typeof via.url !== "string") return null;
+  const m = via.url.match(GHSA_ID_RE);
+  return m ? m[0] : null;
 }
 
 function runNpmAudit() {
@@ -78,7 +74,7 @@ function runNpmAudit() {
   }
 }
 
-function collectAdvisories(report) {
+export function collectAdvisories(report) {
   const vulnerabilities = report?.vulnerabilities ?? {};
   const advisories = [];
   const seen = new Set();
