@@ -8,7 +8,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "audit": "npm audit",
-    "audit:critical": "npm audit --audit-level=critical",
+    "audit:check": "node scripts/audit-check.mjs",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

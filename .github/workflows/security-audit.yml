@@ -1,5 +1,6 @@
 # 設計根拠: docs/security/jspdf-vulnerabilities.md §6
 # 関連 Issue: #24
+# 関連 Issue: #67（audit-level high 引き上げと GHSA-ID 除外スクリプト導入）
 name: security-audit
 
 on:
@@ -30,8 +31,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: npm audit (critical 以上のみブロック)
-        # high / moderate は到達不能判定済み（docs/security/jspdf-vulnerabilities.md §2）
-        # 現状 critical 1 件（GHSA-f8cm-6447-x5h2）も §2.1 で到達不能だが、本ジョブは
-        # 「将来の新規 critical を検知する」目的で赤化を許容する（同 §6.2 参照）
-        run: npm audit --audit-level=critical
+      - name: npm audit (high 以上を GHSA-ID 除外付きでブロック)
+        # 既知の到達不能 advisory（GHSA-f8cm-6447-x5h2 ほか）は scripts/audit-check.mjs で除外する。
+        # 除外対象の根拠は docs/security/jspdf-vulnerabilities.md §2.1 / §2.2 / §2.3 / §2.4 / §6.2 (α) / §6.5。
+        # 新規 high / critical advisory が出た場合は赤化する（早期検知が目的）。
+        run: npm run audit:check
