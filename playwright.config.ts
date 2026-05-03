@@ -29,7 +29,11 @@ export default defineConfig({
   ],
   webServer: {
     // `output: "export"` 構成のため `next start` は使わず serve で静的配信。
-    command: "npm run build && npx serve out -p 3000 -s",
+    // `-s` (SPA モード) は付けない: Next.js export は `out/index.html` /
+    // `out/calculate.html` 等の複数静的ページを生成するため、`-s` を付けると
+    // `/calculate` への直接アクセスやリロードで `index.html` が返却され
+    // 本番 (Cloudflare Pages) と挙動が乖離する。
+    command: "npm run build && npx serve out -p 3000",
     port: 3000,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

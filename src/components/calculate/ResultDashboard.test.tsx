@@ -10,7 +10,7 @@
  *         `pdfDashboardRef` に実 DOM ノードを渡す（generatePdf 呼び出しの前提）。
  */
 
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ResultDashboard } from "./ResultDashboard";
 import type { CalculationOutput } from "@/lib/calculation";
@@ -79,7 +79,7 @@ describe("ResultDashboard: PDF 生成フロー", () => {
     expect(callArg.filename).toMatch(/^matatabi-roi-\d{8}-\d{4}\.pdf$/);
   });
 
-  it("生成中は再クリックしても二重起動しない (isGeneratingPdfRef ガード + ボタン disabled)", async () => {
+  it("生成中は再クリックしても二重起動しない (isGeneratingPdfRef ガードを fireEvent で検証)", async () => {
     let resolveFn: (() => void) | null = null;
     generatePdfMock.mockImplementation(
       () =>
@@ -101,12 +101,20 @@ describe("ResultDashboard: PDF 生成フロー", () => {
     // generatePdf 呼び出しまで待機 (rAF×2 chain 経由)
     await waitFor(() => expect(generatePdfMock).toHaveBeenCalledTimes(1));
 
-    // 「PDF生成中…」表示と aria-busy=true、disabled 状態を確認
-    await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: /PDF生成中/ }),
-      ).toBeDisabled(),
-    );
+    // (1) 第 1 防壁: ボタンが disabled 化されること (UI 層の二重起動防止)
+    const generatingBtn = await screen.findByRole("button", {
+      name: /PDF生成中/,
+    });
+    expect(generatingBtn).toBeDisabled();
+    expect(generatingBtn).toHaveAttribute("aria-busy", "true");
+
+    // (2) 第 2 防壁: disabled を無視した直接発火でも `isGeneratingPdfRef` ガードが弾く
+    // (UI 層をすり抜けるケース、例えば外部からの programmatic dispatchEvent への保険)
+    fireEvent.click(generatingBtn);
+    fireEvent.click(generatingBtn);
+    // 短い猶予で flush しても呼び出し回数が増えないことを確認
+    await new Promise((r) => setTimeout(r, 50));
+    expect(generatePdfMock).toHaveBeenCalledTimes(1);
 
     // クリーンアップ: pending Promise を解決して unmount を待つ
     await act(async () => {

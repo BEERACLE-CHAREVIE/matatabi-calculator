@@ -58,8 +58,14 @@ class MockResizeObserver {
 
 // ---------------------------------------------------------------------------
 // requestAnimationFrame / cancelAnimationFrame:
-// jsdom は実装するが、useCountUp テストでは jest.useFakeTimers() と組み合わせて
-// 時間を進めるためスタブで上書きする。テスト側で再上書き可能。
+// jsdom にも実装はあるが、本プロジェクトの 2 つの観点で `setTimeout(cb, 16)` ベースの
+// 予測可能なスタブに置き換える:
+// - `useCountUp.test.ts`: rAF を `jest.spyOn` で個別差し替えして時間を制御するため、
+//   ベースが予測可能であること自体に意味がある。
+// - `ResultDashboard.test.tsx` (PDF 生成テスト): `handleDownloadPdf` 内の
+//   `requestAnimationFrame(() => requestAnimationFrame(() => resolve()))` chain を
+//   `waitFor` で flush するためにマクロタスク化されたスタブが必要。
+// 各テストで再上書き可。
 // ---------------------------------------------------------------------------
 globalThis.requestAnimationFrame = ((cb: FrameRequestCallback): number => {
   return setTimeout(() => cb(performance.now()), 16) as unknown as number;

@@ -28,9 +28,14 @@ describe("formatManYen", () => {
 });
 
 describe("formatManYenCompact (OKU_THRESHOLD_MAN_YEN=100,000)", () => {
+  // 注: ここでは関数の出力契約 (formatter としての挙動) のみを検証する。
+  // 数値の semantic 妥当性 (例: 10_000_000_000 円 が「10億円」表記で良いかどうか)
+  // は format.ts と constants.ts の OKU_THRESHOLD_MAN_YEN 仕様の責務であり、
+  // 本テストでは現行関数の出力一致のみを保証する。
   it.each<[number, string]>([
     [1_350_000, "135万円"],
-    [10_000_000_000, "10億円"], // 100,000 万円 = 10 億 (境界一致)
+    // formatter 出力一致テスト (semantic な金額単位の議論は format.ts 側に委譲)
+    [10_000_000_000, "10億円"],
     [10_001_000_000, "10億100万円"],
     [Number.NaN, "0万円"],
     [-100, "0万円"],
