@@ -49,6 +49,7 @@ import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/cn";
 import { useCountUp } from "@/hooks/useCountUp";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { MOBILE_QUERY, REDUCED_MOTION_QUERY } from "@/lib/mediaQueries";
 import { formatManYen, formatManYenCompact, formatPercent } from "@/lib/format";
 import type { InsourcingLevel } from "@/lib/constants";
 import type { CalculationInput, CalculationOutput } from "@/lib/calculation";
@@ -62,8 +63,6 @@ const TOOLTIP_CURSOR_FILL = "rgba(156, 174, 184, 0.08)";
 const BAR_HEIGHT_DESKTOP = 120;
 const BAR_HEIGHT_MOBILE = 100;
 const RECHARTS_ANIM_MS = 800;
-const MOBILE_QUERY = "(max-width: 639px)";
-const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 const SAVINGS_LABEL = "3 年間の止血";
 const PROFIT_LABEL = "3 年間の利益創出";
 
@@ -367,7 +366,7 @@ export function ResultDashboard({
         ) : null}
       </div>
 
-      {isGeneratingPdf ? (
+      {isGeneratingPdf && generatedAt ? (
         <div
           aria-hidden="true"
           style={{
@@ -382,7 +381,7 @@ export function ResultDashboard({
             result={result}
             insourcingLevel={insourcingLevel}
             inputs={inputs}
-            generatedAt={generatedAt ?? new Date()}
+            generatedAt={generatedAt}
           />
         </div>
       ) : null}
