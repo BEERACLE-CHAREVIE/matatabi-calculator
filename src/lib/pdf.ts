@@ -48,6 +48,15 @@ export async function generatePdf(options: GeneratePdfOptions): Promise<void> {
     import("jspdf"),
   ]);
 
+  // Web フォント (Noto Sans JP / Inter, next/font 経由) が解決される前に
+  // html2canvas が走ると、フォントスワップ前後の字形が重畳して文字被りが発生する
+  // （Issue #85）。仕様書 §8.1 の「rAF × 2 待機（DOM レイアウト確定 + フォント解決）」は
+  // rAF だけでは非同期 FontFace 読み込みを保証できないため、`document.fonts.ready` を
+  // 明示的に待つ。
+  if (typeof document !== "undefined" && document.fonts?.ready) {
+    await document.fonts.ready;
+  }
+
   const canvas = await html2canvas(options.element, {
     scale: HTML2CANVAS_SCALE,
     useCORS: false,
