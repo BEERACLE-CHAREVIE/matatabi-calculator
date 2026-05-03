@@ -12,9 +12,6 @@ export default function PrivacyPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 sm:px-8">
       <article className="text-ink">
-        <p className="mb-6 rounded-md border border-line/60 bg-line/10 p-3 text-sm text-ink/80">
-          ⚠️ 本ドキュメントはドラフトです。最終版は法務レビュー後に確定します。
-        </p>
         <h1 className="text-2xl font-bold sm:text-3xl">プライバシーポリシー</h1>
         <p className="mt-4 text-sm leading-relaxed sm:text-base">
           株式会社ねこにまたたび（以下「当社」といいます）は、当社が提供する ROI
@@ -114,7 +111,18 @@ export default function PrivacyPage() {
             6. 開示・訂正・削除等の請求
           </h2>
           <p className="mt-2 text-sm leading-relaxed sm:text-base">
-            ユーザーは、当社が保有する自己の個人情報について、開示、訂正、追加、削除、利用停止、第三者提供の停止を請求することができます。請求方法および本ポリシーに関するお問い合わせ先は本サービス内の指定窓口によります（連絡先は法務レビュー後に確定）。
+            ユーザーは、当社が保有する自己の個人情報について、開示、訂正、追加、削除、利用停止、第三者提供の停止を請求することができます。請求方法および本ポリシーに関するお問い合わせは、メール（
+            <a
+              href="mailto:nekonimatatabi@nekonimatatabi.com"
+              className="text-accent hover:underline"
+            >
+              nekonimatatabi@nekonimatatabi.com
+            </a>
+            ）またはお問い合わせフォーム（
+            <Link href="/contact" className="text-accent hover:underline">
+              こちら
+            </Link>
+            ）よりご連絡ください。
           </p>
         </section>
 
@@ -126,7 +134,7 @@ export default function PrivacyPage() {
         </section>
 
         <section className="mt-8 border-t border-line/60 pt-6">
-          <p className="text-sm text-ink/70">制定日: 2026-XX-XX（法務レビュー後に確定）</p>
+          <p className="text-sm text-ink/70">制定日: 2026-05-11</p>
           <p className="mt-3 text-sm">
             <Link href="/" className="text-accent hover:underline">
               ← トップページへ戻る

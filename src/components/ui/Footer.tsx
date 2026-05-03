@@ -33,6 +33,14 @@ export function Footer({ className }: FooterProps) {
                 利用規約
               </Link>
             </li>
+            <li>
+              <Link
+                href="/contact"
+                className="hover:text-ink hover:underline focus-visible:outline-none focus-visible:underline"
+              >
+                お問い合わせ
+              </Link>
+            </li>
           </ul>
         </nav>
       </div>
