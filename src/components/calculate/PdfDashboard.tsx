@@ -267,8 +267,9 @@ function MetricCard({ title, value, note }: MetricCardProps) {
         <div
           style={{
             fontSize: "8pt",
-            color: INK_HEX,
-            opacity: 0.7,
+            // INK_HEX の 70% 相当の色を直書きする（opacity を避け、html2canvas-pro の
+            // 二重アルファ合成バグを回避。Issue #85）。
+            color: "#A5988A",
             marginTop: "1mm",
             lineHeight: 1.35,
           }}
@@ -357,6 +358,14 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           display: "flex",
           flexDirection: "column",
           gap: "4mm",
+          // globals.css の `text-rendering: optimizeLegibility` /
+          // `font-feature-settings: "palt" 1` を PDF 経路で override する。
+          // optimizeLegibility は html2canvas-pro のラスタライズで隣接グリフが
+          // サブピクセル単位で重畳して「うっすら二重」に見える原因になる。
+          // PDF は静止画像で読みやすさより**ピクセル安定性**を優先するため
+          // geometricPrecision に固定し、palt 詰めも無効化する（Issue #85）。
+          textRendering: "geometricPrecision",
+          fontFeatureSettings: "normal",
         }}
       >
         {/* ヘッダー: 14pt と 10pt のフォント高差で center 揃えがブレるため
@@ -396,8 +405,9 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
             style={{
               fontSize: "10pt",
               lineHeight: 1,
-              color: INK_HEX,
-              opacity: 0.8,
+              // INK_HEX の 80% 相当の色を直書き（opacity を避けて html2canvas-pro の
+              // アルファ合成バグを回避。Issue #85）。
+              color: "#8E8278",
               fontVariantNumeric: "tabular-nums",
             }}
           >
@@ -427,7 +437,7 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
             boxSizing: "border-box",
           }}
         >
-          <div style={{ fontSize: "10pt", color: INK_HEX, opacity: 0.8 }}>
+          <div style={{ fontSize: "10pt", color: "#8E8278" }}>
             3 年間のトータルインパクト
           </div>
           <div
@@ -440,7 +450,7 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           >
             {formatManYenCompact(result.totalThreeYearImpact)}
           </div>
-          <div style={{ fontSize: "10pt", color: INK_HEX, opacity: 0.6 }}>
+          <div style={{ fontSize: "10pt", color: "#A99F94" }}>
             ※ 試算上の最大値
           </div>
         </div>
@@ -688,16 +698,18 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           <SummaryRow label="詳細設定" value={advancedLabel} />
         </dl>
 
-        {/* 免責。`flexShrink: 0` で他セクションと縦衝突しないことを保証。 */}
+        {/* 免責。`flexShrink: 0` で他セクションと縦衝突しないことを保証。
+            `opacity` は html2canvas-pro のラスタ時にサブピクセルでズレた 2 枚の
+            アルファ合成が走る経験則的バグがあり、disclaimer の「下部の文字被り」を
+            誘発するため、INK_HEX の 70% 相当を直書きカラー (#A5988A) で代替する（Issue #85）。 */}
         <p
           style={{
             margin: 0,
             fontSize: "8pt",
-            color: INK_HEX,
-            opacity: 0.7,
-            minHeight: "8mm",
+            color: "#A5988A",
+            minHeight: "10mm",
             flexShrink: 0,
-            lineHeight: 1.4,
+            lineHeight: 1.5,
             boxSizing: "border-box",
           }}
         >
