@@ -12,15 +12,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "./useMediaQuery";
+import { REDUCED_MOTION_QUERY } from "@/lib/mediaQueries";
 
 /** カウンターの標準 duration（ミリ秒）。docs/spec/result-dashboard.md §6.1 で確定。 */
 const DEFAULT_DURATION_MS = 1_200;
 
 /** ease-out cubic。t ∈ [0, 1] を [0, 1] に写像する。 */
 export const easeOutCubic = (t: number): number => 1 - (1 - t) ** 3;
-
-/** prefers-reduced-motion: reduce のメディアクエリ文字列。 */
-const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
 export type UseCountUpOptions = {
   /** アニメーション持続時間（ミリ秒）。既定 1,200ms。 */
