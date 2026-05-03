@@ -50,7 +50,7 @@ import {
 
 const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
-const PDF_BAR_HEIGHT_PX = 100;
+const PDF_BAR_HEIGHT_PX = 120;
 
 const ACCENT_HEX = "#9CAEB8";
 const ACCENT_60 = "rgba(156, 174, 184, 0.6)";
@@ -61,6 +61,27 @@ const WHITE_HEX = "#FFFFFF";
 
 const SAVINGS_LABEL = "3 年間の止血";
 const PROFIT_LABEL = "3 年間の利益創出";
+
+/**
+ * 積み上げ横棒グラフのバー内ラベル文字列を、value / total の比率に応じて
+ * 段階的にフォールバックする。`html2canvas` 後の SVG `<text>` は CSS overflow が
+ * 効かないため、formatter 段階で文字列の長さ自体を抑制する必要がある。
+ *
+ * - `total <= 0`: 空文字（ゼロ除算回避 + チャート未描画時の防御）
+ * - `ratio < 0.08`: バー幅の 8% 未満では `formatManYen` 5〜6 桁の文字列が
+ *   隣接ラベルと衝突するため、描画自体を抑制する
+ * - `0.08 ≤ ratio < 0.18`: `formatManYenCompact` の「◯億◯万円」短縮表記に降格
+ * - `0.18 ≤ ratio`: 既存の `formatManYen` 表記
+ *
+ * @internal レイアウトリグレッション検出のためテストから利用する。
+ */
+export function pickPdfBarLabel(value: number, total: number): string {
+  if (total <= 0) return "";
+  const ratio = value / total;
+  if (ratio < 0.08) return "";
+  if (ratio < 0.18) return formatManYenCompact(value);
+  return formatManYen(value);
+}
 
 /**
  * 更新待ち期間の代表値→ラベル変換。`InputForm` の `UPDATE_WAIT_OPTIONS` と同一マッピングを
@@ -136,19 +157,29 @@ function PdfWarningBanner({ headline, subtext }: PdfWarningBannerProps) {
         height={18}
         color={ACCENT_HEX}
       />
-      <div style={{ display: "flex", flexDirection: "column" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          gap: "1mm",
+        }}
+      >
         <span
           style={{
             fontSize: "12pt",
             fontWeight: 700,
             letterSpacing: "0.06em",
             textTransform: "uppercase",
+            lineHeight: 1.2,
             color: INK_HEX,
           }}
         >
           {headline}
         </span>
-        <span style={{ fontSize: "10pt", color: INK_HEX }}>{subtext}</span>
+        <span style={{ fontSize: "10pt", lineHeight: 1.35, color: INK_HEX }}>
+          {subtext}
+        </span>
       </div>
     </div>
   );
@@ -161,6 +192,10 @@ interface MetricCardProps {
 }
 
 function MetricCard({ title, value, note }: MetricCardProps) {
+  // 桁膨張時のフォールバック。仕様書 §5.3 の規定 16pt を維持しつつ、
+  // value 文字列が長くなった場合のみ段階的に縮小して 34mm のカード高さを守る（Issue #85）。
+  const valueFontSize =
+    value.length > 11 ? "13pt" : value.length > 8 ? "14pt" : "16pt";
   return (
     <div
       style={{
@@ -177,11 +212,30 @@ function MetricCard({ title, value, note }: MetricCardProps) {
       <div style={{ fontSize: "10pt", fontWeight: 500, color: INK_HEX }}>
         {title}
       </div>
-      <div style={{ fontSize: "16pt", fontWeight: 700, color: INK_HEX }}>
+      <div
+        style={{
+          fontSize: valueFontSize,
+          fontWeight: 700,
+          color: INK_HEX,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          fontVariantNumeric: "tabular-nums",
+          lineHeight: 1.15,
+        }}
+      >
         {value}
       </div>
       {note ? (
-        <div style={{ fontSize: "8pt", color: INK_HEX, opacity: 0.7 }}>
+        <div
+          style={{
+            fontSize: "8pt",
+            color: INK_HEX,
+            opacity: 0.7,
+            marginTop: "1mm",
+            lineHeight: 1.35,
+          }}
+        >
           {note}
         </div>
       ) : null}
@@ -268,11 +322,12 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           gap: "4mm",
         }}
       >
-        {/* ヘッダー */}
+        {/* ヘッダー: 14pt と 10pt のフォント高差で center 揃えがブレるため
+            baseline 揃えに固定。ロゴのみ alignSelf: center で別途センタリング（Issue #85）。 */}
         <div
           style={{
             display: "flex",
-            alignItems: "center",
+            alignItems: "baseline",
             justifyContent: "space-between",
             height: "18mm",
             paddingBottom: "3mm",
@@ -284,19 +339,28 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           <img
             src={PDF_LOGO_SRC}
             alt=""
-            style={{ width: "12mm", height: "12mm" }}
+            style={{ width: "12mm", height: "12mm", alignSelf: "center" }}
           />
           <h1
             style={{
               margin: 0,
               fontSize: "14pt",
               fontWeight: 700,
+              lineHeight: 1,
               color: INK_HEX,
             }}
           >
             {PDF_REPORT_TITLE}
           </h1>
-          <span style={{ fontSize: "10pt", color: INK_HEX, opacity: 0.8 }}>
+          <span
+            style={{
+              fontSize: "10pt",
+              lineHeight: 1,
+              color: INK_HEX,
+              opacity: 0.8,
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
             生成日時 {formatPdfDateTime(generatedAt)}
           </span>
         </div>
@@ -339,13 +403,14 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           </div>
         </div>
 
-        {/* 指標カード 3 並列 */}
+        {/* 指標カード 3 並列。value 文字列が長い場合のみカード高さが伸長する
+            (gridAutoRows: minmax(34mm, auto))。下方 note との衝突を物理的に回避（Issue #85）。 */}
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",
+            gridAutoRows: "minmax(34mm, auto)",
             gap: "6mm",
-            height: "34mm",
             boxSizing: "border-box",
           }}
         >
@@ -374,7 +439,7 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
             <BarChart
               data={chartData}
               layout="vertical"
-              margin={{ top: 8, right: 24, bottom: 8, left: 16 }}
+              margin={{ top: 8, right: 36, bottom: 8, left: 24 }}
             >
               <XAxis
                 type="number"
@@ -384,52 +449,67 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
               <YAxis type="category" dataKey="label" hide />
               <Legend
                 verticalAlign="bottom"
+                wrapperStyle={{ position: "relative", marginTop: "2mm" }}
                 content={() => (
                   <ul
                     style={{
                       display: "flex",
                       justifyContent: "center",
+                      alignItems: "baseline",
                       gap: "12mm",
                       margin: 0,
                       padding: "2mm 0 0 0",
                       listStyle: "none",
                       fontSize: "9pt",
+                      lineHeight: 1.4,
                       color: INK_HEX,
                     }}
                   >
                     <li
                       style={{
                         display: "flex",
-                        alignItems: "center",
+                        alignItems: "baseline",
                         gap: "1mm",
                       }}
                     >
                       <PiggyBank
                         aria-hidden="true"
-                        width={12}
-                        height={12}
+                        width={14}
+                        height={14}
                         color={ACCENT_HEX}
+                        style={{ verticalAlign: "middle", flexShrink: 0 }}
                       />
                       <span>{SAVINGS_LABEL}</span>
-                      <span style={{ fontWeight: 600 }}>
+                      <span
+                        style={{
+                          fontWeight: 600,
+                          fontVariantNumeric: "tabular-nums",
+                        }}
+                      >
                         {formatManYen(result.threeYearSavings)}
                       </span>
                     </li>
                     <li
                       style={{
                         display: "flex",
-                        alignItems: "center",
+                        alignItems: "baseline",
                         gap: "1mm",
                       }}
                     >
                       <Sparkles
                         aria-hidden="true"
-                        width={12}
-                        height={12}
+                        width={14}
+                        height={14}
                         color={ACCENT_60}
+                        style={{ verticalAlign: "middle", flexShrink: 0 }}
                       />
                       <span>{PROFIT_LABEL}</span>
-                      <span style={{ fontWeight: 600 }}>
+                      <span
+                        style={{
+                          fontWeight: 600,
+                          fontVariantNumeric: "tabular-nums",
+                        }}
+                      >
                         {formatManYen(result.threeYearProfitCreation)}
                       </span>
                     </li>
@@ -448,13 +528,17 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
                   dataKey="savings"
                   position="insideLeft"
                   formatter={(value: number) =>
-                    value <
-                    (result.threeYearSavings + result.threeYearProfitCreation) *
-                      0.05
-                      ? ""
-                      : formatManYen(value)
+                    pickPdfBarLabel(
+                      value,
+                      result.threeYearSavings + result.threeYearProfitCreation,
+                    )
                   }
-                  style={{ fill: WHITE_HEX, fontSize: 10, fontWeight: 600 }}
+                  style={{
+                    fill: WHITE_HEX,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
                 />
               </Bar>
               <Bar
@@ -469,17 +553,20 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
                   dataKey="profit"
                   position="insideRight"
                   formatter={(value: number) =>
-                    // 桁爆発時に隣接ラベルと衝突する場合や、profit が savings に対して
-                    // 極端に小さく insideRight に収まらない場合は描画を抑制する。
-                    // 比率閾値はバー幅の概算（A4 約 180mm + scale=2）で「ラベルが視認可能」
-                    // と判断できる下限として 5% を採用。
-                    value <
-                    (result.threeYearSavings + result.threeYearProfitCreation) *
-                      0.05
-                      ? ""
-                      : formatManYen(value)
+                    // バー内ラベルは scale=2 ラスタライズ後に隣接ラベルと衝突しやすい。
+                    // pickPdfBarLabel が比率に応じて空文字 / Compact 表記 / 標準表記を
+                    // 切り替える（< 8% 抑制、< 18% で Compact、それ以上で標準）。
+                    pickPdfBarLabel(
+                      value,
+                      result.threeYearSavings + result.threeYearProfitCreation,
+                    )
                   }
-                  style={{ fill: INK_HEX, fontSize: 10, fontWeight: 600 }}
+                  style={{
+                    fill: INK_HEX,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
                 />
               </Bar>
             </BarChart>
