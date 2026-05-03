@@ -72,8 +72,6 @@ const PROFIT_LABEL = "3 年間の利益創出";
  *   隣接ラベルと衝突するため、描画自体を抑制する
  * - `0.08 ≤ ratio < 0.18`: `formatManYenCompact` の「◯億◯万円」短縮表記に降格
  * - `0.18 ≤ ratio`: 既存の `formatManYen` 表記
- *
- * @internal レイアウトリグレッション検出のためテストから利用する。
  */
 export function pickPdfBarLabel(value: number, total: number): string {
   if (total <= 0) return "";
@@ -81,6 +79,31 @@ export function pickPdfBarLabel(value: number, total: number): string {
   if (ratio < 0.08) return "";
   if (ratio < 0.18) return formatManYenCompact(value);
   return formatManYen(value);
+}
+
+/**
+ * 指標カード value 表示用のフォーマッタ。万円換算後の値が
+ * `OKU_THRESHOLD_MAN_YEN`（10 億円相当）以上の桁爆発時は `formatManYenCompact`
+ * へ自動降格する。MetricCard 幅（56mm）+ value 文字列長応答フォントだけでは
+ * 「100,000万円」級の長文字列が `textOverflow: ellipsis` で見切れるため、
+ * 億円表記に降格して 1 行に収める（Issue #85）。
+ */
+export function formatMetricCardValue(yen: number): string {
+  if (!Number.isFinite(yen) || yen < 0) return formatManYen(yen);
+  const manYen = Math.round(yen / YEN_PER_MAN_YEN);
+  if (manYen >= OKU_THRESHOLD_MAN_YEN) return formatManYenCompact(yen);
+  return formatManYen(yen);
+}
+
+/**
+ * MetricCard の value 文字数に応じた段階的フォントサイズ（Issue #85）。
+ * カード高 34mm + 幅 56mm の枠内に value を 1 行で収めるためのフォールバック。
+ * 仕様書 §5.3 の規定 16pt をベースに、桁爆発時のみ縮小する。
+ */
+export function metricCardValueFontSize(value: string): string {
+  if (value.length > 11) return "13pt";
+  if (value.length > 8) return "14pt";
+  return "16pt";
 }
 
 /**
@@ -157,6 +180,10 @@ function PdfWarningBanner({ headline, subtext }: PdfWarningBannerProps) {
         height={18}
         color={ACCENT_HEX}
       />
+      {/*
+       * headline (12pt) と subtext (10pt) の上下間隔を mm + 無次元 lineHeight で固定し、
+       * pt → px → mm の暗黙変換でブラウザ毎にズレる事象を回避する（Issue #85）。
+       */}
       <div
         style={{
           display: "flex",
@@ -192,10 +219,9 @@ interface MetricCardProps {
 }
 
 function MetricCard({ title, value, note }: MetricCardProps) {
-  // 桁膨張時のフォールバック。仕様書 §5.3 の規定 16pt を維持しつつ、
-  // value 文字列が長くなった場合のみ段階的に縮小して 34mm のカード高さを守る（Issue #85）。
-  const valueFontSize =
-    value.length > 11 ? "13pt" : value.length > 8 ? "14pt" : "16pt";
+  // 仕様書 §5.3 の規定 16pt を維持しつつ、value 文字列が長くなった場合のみ
+  // 段階的に縮小して 34mm のカード高さを守る（Issue #85）。
+  const valueFontSize = metricCardValueFontSize(value);
   return (
     <div
       style={{
@@ -404,19 +430,22 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
         </div>
 
         {/* 指標カード 3 並列。value 文字列が長い場合のみカード高さが伸長する
-            (gridAutoRows: minmax(34mm, auto))。下方 note との衝突を物理的に回避（Issue #85）。 */}
+            (gridAutoRows: minmax(34mm, auto))。下方 note との衝突を物理的に回避（Issue #85）。
+            カード間 gap は 5mm に圧縮し、180mm = 56×3 + 6×2 → 56×3 + 5×2 で
+            value 横幅にマージンを追加（formatMetricCardValue の Compact 降格と組み合わせて
+            「100,000万円」級の長文字列でも 1 行収納）。 */}
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",
             gridAutoRows: "minmax(34mm, auto)",
-            gap: "6mm",
+            gap: "5mm",
             boxSizing: "border-box",
           }}
         >
           <MetricCard
             title="3 年間の止血"
-            value={formatManYen(result.threeYearSavings)}
+            value={formatMetricCardValue(result.threeYearSavings)}
             note={
               isPartiallyInsourced
                 ? `内製化 ${insourcingPercent} 相当分を除外済み`
@@ -425,11 +454,11 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
           />
           <MetricCard
             title="年間の利益創出"
-            value={formatManYen(result.annualProfitCreation)}
+            value={formatMetricCardValue(result.annualProfitCreation)}
           />
           <MetricCard
             title="3 年間の利益創出"
-            value={formatManYen(result.threeYearProfitCreation)}
+            value={formatMetricCardValue(result.threeYearProfitCreation)}
           />
         </div>
 
@@ -537,6 +566,8 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
                     fill: WHITE_HEX,
                     fontSize: 10,
                     fontWeight: 600,
+                    pointerEvents: "none",
+                    whiteSpace: "nowrap",
                     fontVariantNumeric: "tabular-nums",
                   }}
                 />
@@ -565,6 +596,8 @@ export const PdfDashboard = forwardRef<HTMLDivElement, PdfDashboardProps>(
                     fill: INK_HEX,
                     fontSize: 10,
                     fontWeight: 600,
+                    pointerEvents: "none",
+                    whiteSpace: "nowrap",
                     fontVariantNumeric: "tabular-nums",
                   }}
                 />
