@@ -1,45 +1,45 @@
 ---
 name: commit
-description: 変更差分からコミットメッセージを生成してコミットを実行する
-argument-hint: "[追加の指示（任意）]"
+description: Auto-generate commit message from diff and commit. Usage /commit
 disable-model-invocation: true
-allowed-tools: Bash, Read
 ---
 
-## 手順
+# Auto Commit
 
-以下の手順に従って、変更差分からコミットメッセージを生成し、コミットを実行してください。
+Auto-generate a commit message from the staged diff and execute the commit.
 
-### 1. 現在の状態を確認
+## Steps
 
-以下のコマンドを**並列で**実行して、変更の全体像を把握する：
+1. **Stage all changes**
+   - Stage all changes with `git add -A`
 
-- `git status`（未追跡ファイルを含む現在の状態）
-- `git diff`（ステージされていない変更）
-- `git diff --cached`（ステージ済みの変更）
-- `git log --oneline -10`（直近のコミットメッセージのスタイルを確認）
+2. **Check staged diff**
+   - Get the staged diff with `git diff --cached`
+   - If there is no diff, display the following message and abort:
+     ```
+     ⚠️ エラー: コミットする変更がありません
+     ```
 
-### 2. コミットメッセージを生成
+3. **Auto-generate commit message**
+   - Analyze the staged diff and generate a concise commit message in Japanese
+   - Rules:
+     - First line: Summary of changes (aim for ~50 characters)
+     - Accurately reflect the nature of changes (new feature, bug fix, refactoring, etc.)
+     - Append `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>` at the end
 
-差分の内容を分析し、以下のルールでコミットメッセージを作成する：
+4. **Execute commit**
+   - Run `git commit` with the generated message
+   - Pass the commit message using HEREDOC format:
+     ```bash
+     git commit -m "$(cat <<'EOF'
+     コミットメッセージ
 
-- **1行目**：変更の要約（日本語、50文字以内目安）
-- 変更の種類を正確に反映する（新機能追加 / 機能改善 / バグ修正 / リファクタリング / テスト / ドキュメント など）
-- 「何を」ではなく「なぜ」にフォーカスする
-- 必要に応じて空行の後に補足説明を追加
-- 末尾に `Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>` を付与
-
-### 3. コミット実行
-
-確認なしでそのまま実行する：
-
-1. 関連ファイルを `git add` でステージする（`.env` や認証情報ファイルは除外）
-2. `git commit` を実行する（メッセージは HEREDOC 形式で渡す）
-3. `git status` で結果を確認する
-
-### 補足ルール
-
-- `git add -A` や `git add .` は使わず、ファイル名を明示的に指定する
-- `.env`、`credentials.json` 等の機密ファイルはコミットしない（警告を出す）
-- pre-commit hook が失敗した場合は問題を修正して**新しいコミットを作成**する（`--amend` しない）
-- ユーザーから追加の指示がある場合: $ARGUMENTS
+     Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+     EOF
+     )"
+     ```
+   - On success, display in the following format:
+     ```
+     ✅ コミットしました: "コミットメッセージの1行目"
+     ```
+   - On failure, display an error message

@@ -1,5 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Noto_Sans_JP } from "next/font/google";
+import {
+  Fraunces,
+  JetBrains_Mono,
+  Noto_Sans_JP,
+  Shippori_Mincho_B1,
+} from "next/font/google";
 import Script from "next/script";
 import { Footer } from "@/components/ui/Footer";
 import { Header } from "@/components/ui/Header";
@@ -13,11 +18,19 @@ import "./globals.css";
 
 const CF_BEACON_TOKEN = process.env.NEXT_PUBLIC_CF_BEACON_TOKEN;
 
-const inter = Inter({
+const fraunces = Fraunces({
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-inter",
+  style: ["normal", "italic"],
+  axes: ["opsz", "SOFT"],
+  variable: "--font-fraunces",
   display: "swap",
+});
+
+const shipporiMincho = Shippori_Mincho_B1({
+  weight: ["400", "500", "700", "800"],
+  variable: "--font-shippori-mincho",
+  display: "swap",
+  preload: false,
 });
 
 const notoSansJp = Noto_Sans_JP({
@@ -25,6 +38,13 @@ const notoSansJp = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
   display: "swap",
   preload: false,
+});
+
+const jetBrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -76,7 +96,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body
-        className={`${inter.variable} ${notoSansJp.variable} bg-canvas text-ink antialiased`}
+        className={`${fraunces.variable} ${shipporiMincho.variable} ${notoSansJp.variable} ${jetBrainsMono.variable} bg-canvas text-ink antialiased`}
       >
         <div className="flex min-h-screen flex-col">
           <Header />

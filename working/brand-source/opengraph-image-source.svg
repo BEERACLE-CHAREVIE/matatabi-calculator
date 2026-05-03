@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#F8F6F2"/>
+
+  <g transform="translate(120 120)">
+    <g fill="#72665B" stroke="#72665B" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M0 32 L20 0 L40 36 Z" stroke-width="2"/>
+      <path d="M88 32 L68 0 L48 36 Z" stroke-width="2"/>
+      <circle cx="44" cy="56" r="32" fill="none" stroke-width="3.5"/>
+      <circle cx="34" cy="52" r="3"/>
+      <circle cx="54" cy="52" r="3"/>
+      <path d="M40 62 L48 62 L44 67 Z"/>
+      <path d="M0 60 L18 60 M0 66 L18 66" stroke-width="2.5" fill="none"/>
+      <path d="M88 60 L70 60 M88 66 L70 66" stroke-width="2.5" fill="none"/>
+    </g>
+  </g>
+
+  <text x="120" y="350" font-family="'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif" font-size="120" font-weight="700" fill="#72665B" letter-spacing="4">またたび計算機</text>
+  <text x="120" y="430" font-family="'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif" font-size="40" font-weight="500" fill="#72665B" letter-spacing="2">中小企業向け ROI 診断アプリ</text>
+
+  <line x1="120" y1="510" x2="280" y2="510" stroke="#9CAEB8" stroke-width="3"/>
+  <text x="120" y="560" font-family="'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif" font-size="28" font-weight="400" fill="#72665B">株式会社ねこにまたたび</text>
+
+  <g transform="translate(960 380) scale(0.9)" opacity="0.5">
+    <g fill="#BEB5AA">
+      <path d="M40 30 L62 -10 L82 30 Z"/>
+      <path d="M180 30 L158 -10 L138 30 Z"/>
+      <ellipse cx="110" cy="150" rx="80" ry="60"/>
+      <circle cx="110" cy="60" r="55"/>
+    </g>
+    <path d="M190 145 Q230 120 225 70 Q220 40 195 50" fill="none" stroke="#BEB5AA" stroke-width="22" stroke-linecap="round"/>
+  </g>
+</svg>

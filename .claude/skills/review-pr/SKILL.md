@@ -1,119 +1,195 @@
 ---
 name: review-pr
-description: 現在のブランチのPRに対してコードレビューを実行し、結果をPRコメントとして投稿する
-argument-hint: "[追加の指示（任意）]"
-allowed-tools: Bash, Read, Glob, Grep, Agent
+description: Review a specified pull request by number and post review comment. Usage /review-pr <PR番号>
+disable-model-invocation: true
 ---
 
-## 手順
+# Review PR
 
-現在のブランチに紐づくPRの差分を取得し、5つの観点でコードレビューを実施してPRにコメントとして投稿する。
+Fetch a specified pull request, analyze the code changes, and post a structured review comment on the PR.
 
-### 1. PR を特定
+## Arguments
 
-以下のコマンドで現在のブランチに紐づく PR を取得する：
+- A PR number is **required** (e.g., `/review-pr 42`)
+- If no argument is provided, display the following message and abort:
+  ```
+  ⚠️ エラー: PR番号を指定してください。使い方: /review-pr <PR番号>
+  ```
+
+## Steps
+
+### 1. Fetch PR details
 
 ```bash
-gh pr view --json number,url,headRefName,baseRefName
+gh pr view {{number}} --json number,title,body,author,baseRefName,headRefName,state,additions,deletions,changedFiles,url
 ```
 
-PR が存在しない場合は「⚠️ 現在のブランチに紐づくPRが見つかりません。」と警告を出し、**処理を中断する**。
-
-### 2. PR の差分を取得
-
-以下のコマンドを**並列で**実行し、レビューに必要な情報を収集する：
-
-- PR全体の差分：
-  ```bash
-  gh pr diff
+- If the PR does not exist, display the following message and abort:
   ```
-- 変更ファイルの一覧：
-  ```bash
-  gh pr view --json files -q '.files[].path'
+  ⚠️ エラー: PR #{{number}} が見つかりません
+  ```
+- If the PR state is `MERGED`, display a warning but continue:
+  ```
+  ⚠️ 注意: PR #{{number}} は既にマージ済みです。マージ時点のコードをレビューします
+  ```
+- If the PR state is `CLOSED`, display a warning but continue:
+  ```
+  ⚠️ 注意: PR #{{number}} はクローズされています。クローズ時点のコードをレビューします
   ```
 
-### 3. ファイルのコンテキストを把握
+- Display PR summary:
+  ```
+  📋 PR #{{number}} の情報
+  ─────────────────────────────
+  タイトル: {{title}}
+  作成者:   @{{author.login}}
+  ステータス: {{state}}
+  ブランチ: {{headRefName}} → {{baseRefName}}
+  変更:    +{{additions}} -{{deletions}} ({{changedFiles}}ファイル)
+  URL:     {{url}}
+  ─────────────────────────────
+  ```
 
-変更ファイルの一覧をもとに、`Read` で各ファイルの全体像を読み込む。
-差分が大きく関連ファイルが多い場合は `Agent（Explore）` を活用してコードベースの文脈を把握する。
-
-### 4. 5つの観点でレビューを実施
-
-差分とファイル全体のコンテキストをもとに、以下の観点それぞれでレビューを行う。
-各指摘は以下の重要度で分類する：
-
-- 🔴 **重要（Critical）**: 即座に対処すべき深刻な問題
-- 🟡 **推奨（Recommended）**: 対応を推奨する問題
-- 🟢 **軽微（Minor）**: 軽微な改善提案
-
-**レビュー観点：**
-
-1. **セキュリティ**: XSS、SQLインジェクション、認証・認可の欠陥、機密情報の漏洩等
-2. **バグ**: null参照、境界値、ロジックの誤り、データ整合性の問題等
-3. **パフォーマンス**: N+1クエリ、不要な処理、キャッシュの欠如等
-4. **設計**: 責務の分離、依存関係、拡張性等
-5. **可読性・スタイル**: 命名、コードの複雑さ、コメント等
-
-プロジェクト固有のルール（CLAUDE.md: Voltファンクショナルスタイル必須、Sail経由のコマンド等）への違反もレビュー観点に含める。
-
-指摘がない観点はコメントから**省略する**。
-良い実装があれば「✅ Good Points」として記録する。
-
-### 5. 総合評価を判定
-
-各観点の指摘をもとに以下のルールで総合評価を決定する：
-
-- 🔴重要が1件以上 → 🔴 **修正が必要**
-- 🔴重要が0件かつ🟡推奨が1件以上 → 🟡 **軽微な修正を推奨**
-- 指摘なし（または🟢軽微のみ） → ✅ **LGTM**
-
-### 6. レビュー結果をPRにコメント
-
-以下の形式でPRにコメントを投稿する。指摘がない観点のセクションは省略する。
+### 2. Fetch changed files list
 
 ```bash
-gh pr comment <PR番号> --body "$(cat <<'EOF'
-## Code Review
+gh pr view {{number}} --json files --jq '.files[].path'
+```
 
-### セキュリティ
-- 🔴 <指摘内容>（<ファイルパス>:<行番号>）
+- Save the file list for determining which review rules to apply
 
-### バグ
-- <指摘内容>
+### 3. Fetch the full diff
 
-### パフォーマンス
-- <指摘内容>
+```bash
+gh pr diff {{number}}
+```
 
-### 設計
-- <指摘内容>
+- Count the diff lines with `gh pr diff {{number}} | wc -l`
+- If the diff exceeds 10,000 lines, display a warning:
+  ```
+  ⚠️ 注意: diffが非常に大きいため ({{lines}}行)、主要な変更に焦点を絞ってレビューします
+  ```
 
-### 可読性・スタイル
-- <指摘内容>
+### 4. Determine applicable review rules
 
-### ✅ Good Points
-- <良い点があれば記載。なければこのセクションを省略>
+Based on the changed files, read the applicable `.claude/rules/` files:
 
----
+| Changed file path pattern | Rule file to read |
+|---------------------------|-------------------|
+| `app/Models/**`, `database/migrations/**`, `database/seeders/**`, `database/factories/**` | `.claude/rules/database.md` |
+| `app/Http/Controllers/Api/**`, `app/Http/Resources/**`, `routes/api.php`, `routes/web.php`, `routes/*.php` | `.claude/rules/api.md` |
+| `resources/views/**`, `resources/js/**`, `resources/css/**` | `.claude/rules/frontend.md` |
+| `tests/**` | `.claude/rules/testing.md` |
+| Any PHP file (`*.php`) | `.claude/rules/laravel.md` |
+| Config/doc files (`.md`, `.yml`, `.yaml`, `.json`, `.xml`) | Review for typos, format consistency, and correctness |
+| Any file (always apply) | `.claude/rules/security.md` |
 
-### 総合評価
-🔴 **修正が必要** / 🟡 **軽微な修正を推奨** / ✅ **LGTM**
-> <総合評価の根拠を1〜2文で記載>
+Read only the applicable rule files and use them as review criteria.
 
----
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
+### 5. Collect and evaluate TODO comments in changed files
+
+Using the file list obtained in Step 2, search for TODO comments in each changed file:
+
+```bash
+# For each file in the changed files list:
+grep -nE 'TODO(\(|:| )' {{file_path}}
+```
+
+- Collect all lines containing `TODO` (including `TODO(#xxx)` format) from the changed files
+- If no TODO comments are found, skip this step and proceed to Step 6
+
+For each collected TODO comment:
+1. Read the surrounding code context (5-10 lines above and below the TODO)
+2. Evaluate whether the current PR's changes satisfy the TODO's condition or make the TODO actionable
+3. If the TODO's condition IS satisfied by the current changes → include as a 🟡 推奨 finding in Step 7's review output:
+   - Format: **`file/path:line`** TODO(#xxx): 〇〇 — 今回の変更でこの条件が満たされたため、対応を検討してください
+4. If the TODO's condition is NOT satisfied → skip (do not include in findings to avoid noise)
+
+Important:
+- Only evaluate TODOs in files that are part of the PR's changed file list (do not scan the entire codebase)
+- Consider the full diff context when evaluating whether a TODO's condition is met
+- Be conservative: only flag TODOs where the condition is clearly satisfied by the current changes
+
+### 6. Analyze and review the code changes
+
+Thoroughly analyze the diff considering:
+
+1. **PR description alignment** - Do the actual changes match the described intent?
+2. **Code quality** - Based on applicable `.claude/rules/`
+3. **Potential bugs** - Logic errors, edge cases, null handling
+4. **Security** - Based on `.claude/rules/security.md`
+5. **Performance** - N+1 queries, unnecessary processing, large dataset handling
+6. **Best practices** - Laravel conventions, PSR-12, project patterns
+
+### 7. Post review comment on PR
+
+Compose the review in the following Markdown format and post it as a PR comment.
+
+**Review format:**
+
+```markdown
+## 🔍 コードレビュー
+
+### 📝 変更概要
+<!-- 2-3 sentence summary -->
+
+### ✅ 良い点
+<!-- 1-2 lines max. Keep it brief -->
+
+### ⚠️ 指摘事項
+<!-- Only include severity levels that have findings. Omit empty levels entirely (do NOT write "なし") -->
+<!-- Available levels (use only those with findings): -->
+<!-- #### 🔴 重要 -->
+<!-- #### 🟡 推奨 (includes TODO comments whose conditions are met by this PR) -->
+<!-- #### 🔵 軽微 -->
+
+### 📊 総合評価
+<!-- LGTM / 軽微な修正後にマージ可 / 修正が必要 / 大幅な修正が必要 -->
+```
+
+**Finding format rules:**
+- Each finding: **`file/path:line_number`** + 1-2 sentence description
+- Code suggestions (```suggestion) only for 🔴 and 🟡, keep them minimal
+- No code suggestions for 🔵 (text only)
+
+**Post the comment:**
+
+**IMPORTANT**: Use HEREDOC in a Bash command to create the temporary body file. Do NOT use the Write tool.
+
+```bash
+# Create review body as a temp file using HEREDOC
+cat > review_body.tmp << 'EOF'
+{{レビュー内容}}
 EOF
-)"
+
+# Post comment on PR
+gh pr comment {{number}} --body-file review_body.tmp
+
+# Clean up temp file
+rm -f review_body.tmp
 ```
 
-### 7. 結果をターミナルに表示
+- On success, display:
+  ```
+  ✅ PR #{{number}} にレビューコメントを投稿しました
+  {{url}}
+  ```
+- On failure, display the error message
 
-以下の情報をユーザーに表示する：
+## Error Handling
 
-- PRのURL
-- 観点別の指摘件数
-- 重要度別の件数（🔴 / 🟡 / 🟢）
-- 総合評価
+- No PR number provided: Display usage message and abort
+- PR not found: Display error and abort
+- `gh` command failure: Display error message and abort
+- Excessively large diff: Display warning and continue (focus review on key changes)
+- Comment post failure: Display error message
 
-### 補足ルール
+## Important Notes
 
-- ユーザーから追加の指示がある場合: $ARGUMENTS
+- This skill does NOT modify any files or branches
+- This skill works from any branch (does not require checkout of the PR's branch)
+- Always apply `.claude/rules/security.md` regardless of file types
+- When the diff is too large, prioritize reviewing: security issues > bugs > code quality > style
+- Include specific file paths and approximate line numbers in all feedback
+- Provide concrete code suggestions where possible, not just abstract feedback
+- All review content should be in Japanese

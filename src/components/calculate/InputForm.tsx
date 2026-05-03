@@ -16,10 +16,9 @@ import {
   useState,
   type ChangeEvent,
   type FormEvent,
+  type ReactNode,
 } from "react";
-import { AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { AlertCircle, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { INSOURCING_LEVELS, type InsourcingLevel } from "@/lib/constants";
 import { manYenToYen, type CalculationInput } from "@/lib/calculation";
@@ -143,29 +142,101 @@ function validate(form: FormState): {
   };
 }
 
+// 数字入力共通スタイル: 編集型の細罫枠 + 大きめ tabular-nums + 紙下地。
 const inputBaseClass =
-  "block w-full rounded-md border border-line bg-canvas px-3 h-11 text-base text-ink " +
-  "placeholder:text-ink/40 " +
+  "block w-full rounded-xl border border-line/55 bg-canvas px-4 h-12 fig-mono text-[17px] text-ink " +
+  "placeholder:text-ink/35 placeholder:font-sans " +
+  "transition-[border-color,box-shadow] duration-200 " +
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 " +
-  "aria-[invalid=true]:border-[#B45656]";
+  "focus-visible:border-accent " +
+  "aria-[invalid=true]:border-[#B45656] aria-[invalid=true]:bg-[#B45656]/[0.04]";
 
 const stepperButtonClass =
-  "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-line bg-canvas text-lg text-ink " +
-  "hover:bg-line/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 " +
-  "disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-line/55 bg-canvas text-[18px] text-ink " +
+  "transition-[background-color,color,border-color,opacity] duration-150 " +
+  "hover:border-ink hover:bg-ink hover:text-canvas " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 " +
+  "disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-canvas disabled:hover:text-ink disabled:hover:border-line/55";
 
 const segmentBaseClass =
-  "inline-flex min-h-11 items-center justify-center rounded-md border px-4 py-2 text-sm font-medium " +
+  "group/seg inline-flex min-h-12 items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-[14px] font-medium " +
+  "transition-[background-color,color,border-color,transform] duration-200 " +
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
 
-const segmentSelectedClass = "border-ink bg-ink text-canvas";
+const segmentSelectedClass =
+  "border-ink bg-ink text-canvas shadow-card";
 const segmentUnselectedClass =
-  "border-line bg-canvas text-ink hover:bg-line/30";
+  "border-line/55 bg-canvas text-ink hover:border-ink hover:-translate-y-px";
 
 export type InputFormProps = {
   onSubmit: (input: CalculationInput) => void;
   className?: string;
 };
+
+/** 編集型のフィールドラッパ。番号 + ラベル + ヘルプ + 入力 + エラーをまとめる。 */
+function FieldRow({
+  index,
+  label,
+  unit,
+  help,
+  children,
+  error,
+  errorId,
+  helpId,
+}: {
+  index: number;
+  label: ReactNode;
+  unit?: ReactNode;
+  help: ReactNode;
+  children: ReactNode;
+  error?: string;
+  errorId: string;
+  helpId: string;
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:gap-x-7 sm:gap-y-2">
+      {/* 番号列 */}
+      <div className="flex items-baseline gap-3 sm:flex-col sm:items-start sm:gap-1.5 sm:pt-0.5">
+        <span className="fig-mono text-[12px] text-ink/45">
+          Q.{String(index).padStart(2, "0")}
+          <span className="ml-0.5 text-ink/30">/05</span>
+        </span>
+        <span
+          aria-hidden="true"
+          className="hidden h-px w-7 bg-line/60 sm:block"
+        />
+      </div>
+
+      {/* ラベル + 入力列 */}
+      <div className="flex flex-col gap-2.5">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="font-mincho text-[16px] font-semibold text-ink sm:text-[17px]">
+            {label}
+          </span>
+          {unit ? (
+            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink/55">
+              {unit}
+            </span>
+          ) : null}
+        </div>
+        {children}
+        <p id={helpId} className="text-[13px] leading-relaxed text-ink/65">
+          {help}
+        </p>
+        {error ? (
+          <p
+            id={errorId}
+            role="alert"
+            className="flex items-center gap-1.5 text-sm text-[#B45656]"
+          >
+            <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
+            <span>{error}</span>
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 export function InputForm({ onSubmit, className }: InputFormProps) {
   const formId = useId();
@@ -248,111 +319,155 @@ export function InputForm({ onSubmit, className }: InputFormProps) {
   };
 
   return (
-    <Card className={className}>
-      <form noValidate onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
-        {/* (1) 月額ベンダー費用 */}
-        <div className="space-y-2">
-          <label
-            htmlFor={fieldId("monthlyVendorCostManYen")}
-            className="block text-sm font-medium text-ink"
-          >
-            月額ベンダー費用
-            <span className="ml-2 text-xs font-normal text-ink/70">
-              （万円／月）
-            </span>
-          </label>
-          <input
-            ref={(el) => {
-              fieldRefs.current.monthlyVendorCostManYen = el;
-            }}
-            id={fieldId("monthlyVendorCostManYen")}
-            type="number"
-            inputMode="numeric"
-            min={1}
-            max={10_000}
-            step={1}
-            placeholder="例: 50"
-            className={inputBaseClass}
-            value={form.monthlyVendorCostManYen}
-            aria-required="true"
-            aria-invalid={errors.monthlyVendorCostManYen ? "true" : "false"}
-            aria-describedby={describedBy("monthlyVendorCostManYen")}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              updateField("monthlyVendorCostManYen", e.target.value)
-            }
-            onBlur={() => validateOnBlur("monthlyVendorCostManYen")}
-          />
-          <p id={helpId("monthlyVendorCostManYen")} className="text-xs text-ink/70">
-            現在ベンダーに支払っている IT 関連の月額費用（保守・運用・開発受託等の合計）
-          </p>
-          {errors.monthlyVendorCostManYen ? (
-            <p
-              id={errorId("monthlyVendorCostManYen")}
-              role="alert"
-              className="flex items-center gap-1 text-sm text-[#B45656]"
-            >
-              <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
-              <span>{errors.monthlyVendorCostManYen}</span>
-            </p>
-          ) : null}
+    <article
+      className={cn(
+        "relative overflow-hidden rounded-[24px] border border-line/55 bg-canvas/85 backdrop-blur-[1px] shadow-card",
+        className,
+      )}
+    >
+      <div
+        aria-hidden="true"
+        className="bg-grain pointer-events-none absolute inset-0 opacity-50"
+      />
+
+      {/* 伝票風ヘッダ */}
+      <div className="relative flex items-center justify-between border-b border-line/40 px-6 py-4 sm:px-9">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex h-2.5 w-2.5 rounded-full bg-accent" />
+          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-ink/55">
+            Input Sheet · 5 fields
+          </span>
         </div>
+        <span className="font-mono text-[10px] tracking-[0.18em] text-ink/40">
+          Browser-only
+        </span>
+      </div>
+
+      <form
+        noValidate
+        onSubmit={handleSubmit}
+        className="relative flex flex-col gap-10 px-6 py-9 sm:gap-12 sm:px-10 sm:py-12"
+      >
+        {/* (1) 月額ベンダー費用 */}
+        <FieldRow
+          index={1}
+          label={
+            <label htmlFor={fieldId("monthlyVendorCostManYen")}>
+              月額ベンダー費用
+            </label>
+          }
+          unit="万円 / 月"
+          help="現在ベンダーに支払っている IT 関連の月額費用（保守・運用・開発受託等の合計）"
+          error={errors.monthlyVendorCostManYen}
+          errorId={errorId("monthlyVendorCostManYen")}
+          helpId={helpId("monthlyVendorCostManYen")}
+        >
+          <div className="relative">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 fig-mono text-[15px] text-ink/40"
+            >
+              ¥
+            </span>
+            <input
+              ref={(el) => {
+                fieldRefs.current.monthlyVendorCostManYen = el;
+              }}
+              id={fieldId("monthlyVendorCostManYen")}
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={10_000}
+              step={1}
+              placeholder="例: 50"
+              className={cn(inputBaseClass, "pl-9")}
+              value={form.monthlyVendorCostManYen}
+              aria-required="true"
+              aria-invalid={errors.monthlyVendorCostManYen ? "true" : "false"}
+              aria-describedby={describedBy("monthlyVendorCostManYen")}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                updateField("monthlyVendorCostManYen", e.target.value)
+              }
+              onBlur={() => validateOnBlur("monthlyVendorCostManYen")}
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 font-mono text-[12px] uppercase tracking-[0.18em] text-ink/45"
+            >
+              万円
+            </span>
+          </div>
+        </FieldRow>
+
+        <FieldDivider />
 
         {/* (2) 改修費用 */}
-        <div className="space-y-2">
-          <label
-            htmlFor={fieldId("repairCostManYen")}
-            className="block text-sm font-medium text-ink"
-          >
-            改修費用
-            <span className="ml-2 text-xs font-normal text-ink/70">
-              （万円／回）
-            </span>
-          </label>
-          <input
-            ref={(el) => {
-              fieldRefs.current.repairCostManYen = el;
-            }}
-            id={fieldId("repairCostManYen")}
-            type="number"
-            inputMode="numeric"
-            min={0}
-            max={5_000}
-            step={1}
-            placeholder="例: 30"
-            className={inputBaseClass}
-            value={form.repairCostManYen}
-            aria-required="true"
-            aria-invalid={errors.repairCostManYen ? "true" : "false"}
-            aria-describedby={describedBy("repairCostManYen")}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              updateField("repairCostManYen", e.target.value)
-            }
-            onBlur={() => validateOnBlur("repairCostManYen")}
-          />
-          <p id={helpId("repairCostManYen")} className="text-xs text-ink/70">
-            1 回あたりの改修・機能追加の発注費用。年 3 回想定で試算します
-          </p>
-          {errors.repairCostManYen ? (
-            <p
-              id={errorId("repairCostManYen")}
-              role="alert"
-              className="flex items-center gap-1 text-sm text-[#B45656]"
+        <FieldRow
+          index={2}
+          label={
+            <label htmlFor={fieldId("repairCostManYen")}>
+              改修費用
+            </label>
+          }
+          unit="万円 / 回"
+          help="1 回あたりの改修・機能追加の発注費用。年 3 回想定で試算します"
+          error={errors.repairCostManYen}
+          errorId={errorId("repairCostManYen")}
+          helpId={helpId("repairCostManYen")}
+        >
+          <div className="relative">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 fig-mono text-[15px] text-ink/40"
             >
-              <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
-              <span>{errors.repairCostManYen}</span>
-            </p>
-          ) : null}
-        </div>
+              ¥
+            </span>
+            <input
+              ref={(el) => {
+                fieldRefs.current.repairCostManYen = el;
+              }}
+              id={fieldId("repairCostManYen")}
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={5_000}
+              step={1}
+              placeholder="例: 30"
+              className={cn(inputBaseClass, "pl-9")}
+              value={form.repairCostManYen}
+              aria-required="true"
+              aria-invalid={errors.repairCostManYen ? "true" : "false"}
+              aria-describedby={describedBy("repairCostManYen")}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                updateField("repairCostManYen", e.target.value)
+              }
+              onBlur={() => validateOnBlur("repairCostManYen")}
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 font-mono text-[12px] uppercase tracking-[0.18em] text-ink/45"
+            >
+              万円
+            </span>
+          </div>
+        </FieldRow>
+
+        <FieldDivider />
 
         {/* (3) 手作業人数（ステッパー） */}
-        <div className="space-y-2">
-          <label
-            htmlFor={fieldId("manualWorkerCount")}
-            className="block text-sm font-medium text-ink"
-          >
-            手作業に従事する人数
-            <span className="ml-2 text-xs font-normal text-ink/70">（人）</span>
-          </label>
+        <FieldRow
+          index={3}
+          label={
+            <label htmlFor={fieldId("manualWorkerCount")}>
+              手作業に従事する人数
+            </label>
+          }
+          unit="人"
+          help="手作業・定型業務に従事している人数。AI 自動化の対象人数を試算します"
+          error={errors.manualWorkerCount}
+          errorId={errorId("manualWorkerCount")}
+          helpId={helpId("manualWorkerCount")}
+        >
           <div className="flex items-stretch gap-2">
             <button
               type="button"
@@ -363,27 +478,35 @@ export function InputForm({ onSubmit, className }: InputFormProps) {
             >
               −
             </button>
-            <input
-              ref={(el) => {
-                fieldRefs.current.manualWorkerCount = el;
-              }}
-              id={fieldId("manualWorkerCount")}
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={1_000}
-              step={1}
-              placeholder="例: 5"
-              className={inputBaseClass}
-              value={form.manualWorkerCount}
-              aria-required="true"
-              aria-invalid={errors.manualWorkerCount ? "true" : "false"}
-              aria-describedby={describedBy("manualWorkerCount")}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                updateField("manualWorkerCount", e.target.value)
-              }
-              onBlur={() => validateOnBlur("manualWorkerCount")}
-            />
+            <div className="relative flex-1">
+              <input
+                ref={(el) => {
+                  fieldRefs.current.manualWorkerCount = el;
+                }}
+                id={fieldId("manualWorkerCount")}
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={1_000}
+                step={1}
+                placeholder="例: 5"
+                className={cn(inputBaseClass, "text-center")}
+                value={form.manualWorkerCount}
+                aria-required="true"
+                aria-invalid={errors.manualWorkerCount ? "true" : "false"}
+                aria-describedby={describedBy("manualWorkerCount")}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  updateField("manualWorkerCount", e.target.value)
+                }
+                onBlur={() => validateOnBlur("manualWorkerCount")}
+              />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 font-mono text-[12px] uppercase tracking-[0.18em] text-ink/45"
+              >
+                人
+              </span>
+            </div>
             <button
               type="button"
               aria-label="1 人増やす"
@@ -394,33 +517,27 @@ export function InputForm({ onSubmit, className }: InputFormProps) {
               ＋
             </button>
           </div>
-          <p id={helpId("manualWorkerCount")} className="text-xs text-ink/70">
-            手作業・定型業務に従事している人数。AI 自動化の対象人数を試算します
-          </p>
-          {errors.manualWorkerCount ? (
-            <p
-              id={errorId("manualWorkerCount")}
-              role="alert"
-              className="flex items-center gap-1 text-sm text-[#B45656]"
-            >
-              <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
-              <span>{errors.manualWorkerCount}</span>
-            </p>
-          ) : null}
-        </div>
+        </FieldRow>
+
+        <FieldDivider />
 
         {/* (4) 更新待ち期間 */}
-        <fieldset className="space-y-2">
-          <legend className="block text-sm font-medium text-ink">
-            更新待ち期間
-            <span className="ml-2 text-xs font-normal text-ink/70">（月）</span>
-          </legend>
+        <FieldRow
+          index={4}
+          label="更新待ち期間"
+          unit="月"
+          help="修正・改修依頼を出してから反映されるまでの平均期間"
+          error={errors.updateWaitMonths}
+          errorId={errorId("updateWaitMonths")}
+          helpId={helpId("updateWaitMonths")}
+        >
           <div
             role="radiogroup"
+            aria-label="更新待ち期間"
             aria-required="true"
             aria-invalid={errors.updateWaitMonths ? "true" : "false"}
             aria-describedby={describedBy("updateWaitMonths")}
-            className="flex flex-col gap-2 sm:flex-row sm:flex-wrap"
+            className="flex flex-wrap gap-2"
           >
             {UPDATE_WAIT_OPTIONS.map((opt, idx) => {
               const selected = form.updateWaitMonths === opt.value;
@@ -444,32 +561,26 @@ export function InputForm({ onSubmit, className }: InputFormProps) {
               );
             })}
           </div>
-          <p id={helpId("updateWaitMonths")} className="text-xs text-ink/70">
-            修正・改修依頼を出してから反映されるまでの平均期間
-          </p>
-          {errors.updateWaitMonths ? (
-            <p
-              id={errorId("updateWaitMonths")}
-              role="alert"
-              className="flex items-center gap-1 text-sm text-[#B45656]"
-            >
-              <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
-              <span>{errors.updateWaitMonths}</span>
-            </p>
-          ) : null}
-        </fieldset>
+        </FieldRow>
+
+        <FieldDivider />
 
         {/* (5) 内製化状況 */}
-        <fieldset className="space-y-2">
-          <legend className="block text-sm font-medium text-ink">
-            内製化の進捗状況
-          </legend>
+        <FieldRow
+          index={5}
+          label="内製化の進捗状況"
+          help="社内で IT 業務をどの程度内製化しているか。既に内製化された割合は試算から除外します"
+          error={errors.insourcingLevel}
+          errorId={errorId("insourcingLevel")}
+          helpId={helpId("insourcingLevel")}
+        >
           <div
             role="radiogroup"
+            aria-label="内製化の進捗状況"
             aria-required="true"
             aria-invalid={errors.insourcingLevel ? "true" : "false"}
             aria-describedby={describedBy("insourcingLevel")}
-            className="flex flex-col gap-2 sm:flex-row sm:flex-nowrap"
+            className="grid grid-cols-1 gap-2 sm:grid-cols-3"
           >
             {INSOURCING_LEVELS.map((opt, idx) => {
               const selected = form.insourcingLevel === opt.value;
@@ -485,7 +596,7 @@ export function InputForm({ onSubmit, className }: InputFormProps) {
                   title={opt.label}
                   className={cn(
                     segmentBaseClass,
-                    "sm:flex-1",
+                    "w-full",
                     selected ? segmentSelectedClass : segmentUnselectedClass,
                   )}
                   onClick={() => updateField("insourcingLevel", opt.value)}
@@ -496,32 +607,43 @@ export function InputForm({ onSubmit, className }: InputFormProps) {
               );
             })}
           </div>
-          <p id={helpId("insourcingLevel")} className="text-xs text-ink/70">
-            社内で IT 業務をどの程度内製化しているか。既に内製化された割合は試算から除外します
-          </p>
-          {errors.insourcingLevel ? (
-            <p
-              id={errorId("insourcingLevel")}
-              role="alert"
-              className="flex items-center gap-1 text-sm text-[#B45656]"
-            >
-              <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
-              <span>{errors.insourcingLevel}</span>
-            </p>
-          ) : null}
-        </fieldset>
+        </FieldRow>
 
-        <div className="pt-2">
-          <Button
+        {/* Submit row */}
+        <div className="flex flex-col gap-5 border-t border-line/40 pt-8 sm:flex-row sm:items-center sm:justify-between">
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink/55">
+            <span className="fig-mono text-accent">All fields</span>
+            <span className="mx-2 text-ink/30">·</span>
+            ブラウザ内で計算 / 送信なし
+          </p>
+          <button
             type="submit"
-            variant="primary"
-            size="lg"
-            className="w-full sm:w-auto"
+            className="group relative inline-flex h-14 items-center justify-center gap-3 self-start overflow-hidden rounded-full bg-ink px-8 text-[16px] font-medium text-canvas shadow-card transition-[transform,box-shadow] duration-300 hover:-translate-y-[2px] hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:self-auto sm:text-[17px]"
           >
-            診断する
-          </Button>
+            <span className="relative z-10">診断する</span>
+            <ArrowRight
+              aria-hidden="true"
+              className="relative z-10 h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1.5"
+            />
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-accent/30 to-transparent transition-transform duration-700 group-hover:translate-x-full"
+            />
+          </button>
         </div>
       </form>
-    </Card>
+    </article>
+  );
+}
+
+function FieldDivider() {
+  return (
+    <div aria-hidden="true" className="flex items-center gap-3">
+      <span className="h-px flex-1 bg-line/40" />
+      <span className="font-mono text-[10px] uppercase tracking-[0.32em] text-ink/30">
+        ·
+      </span>
+      <span className="h-px w-12 bg-line/40" />
+    </div>
   );
 }
