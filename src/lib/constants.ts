@@ -16,19 +16,36 @@ export const MONTHS_IN_PERIOD = 36;
 /** 試算年数。`MONTHS_IN_PERIOD / MONTHS_PER_YEAR` と一致する固定値。 */
 export const YEARS_IN_PERIOD = 3;
 
-/** 年あたり改修回数（四半期想定で軽微 1 回を除外した固定値）。 */
+/**
+ * 年あたり改修回数（四半期想定で軽微 1 回を除外した固定値）。
+ * 出典: docs/spec/calculation-logic.md §3.4 / システム保守業界通念。
+ */
 export const REPAIRS_PER_YEAR = 3;
 
 /** 年あたり月数（暦定数）。 */
 export const MONTHS_PER_YEAR = 12;
 
-/** 時給単価デフォルト（円/時）。詳細設定で上書き可。 */
+/**
+ * 時給単価デフォルト（円/時）。詳細設定で上書き可。
+ * 出典: 厚労省「賃金構造基本統計調査 令和7年速報」の中小企業ホワイトカラー所定内給与額に
+ * 賞与按分（×1.2）と社会保険料事業主負担（×1.15）を加味した実質時給レンジ
+ * （2,500〜2,800 円）の保守的下限値。詳細は docs/spec/calculation-logic.md §3.1。
+ */
 export const DEFAULT_HOURLY_WAGE = 2_500;
 
-/** 1 日あたり手作業時間デフォルト（時間/日）。詳細設定で上書き可。 */
+/**
+ * 1 日あたり手作業時間デフォルト（時間/日）。詳細設定で上書き可。
+ * 出典: BPO テクノロジー「会社員の業務実態調査」のノンコア業務時間中央値レンジ
+ * （1〜3 時間/日）の中央値。詳細は docs/spec/calculation-logic.md §3.2。
+ */
 export const DEFAULT_HOURS_PER_DAY = 2;
 
-/** 月あたり稼働日数デフォルト（日/月）。詳細設定で上書き可。 */
+/**
+ * 月あたり稼働日数デフォルト（日/月）。詳細設定で上書き可。
+ * 出典: 厚労省「就労条件総合調査 令和7年（令和6年実績）」の中小企業（30〜99 人）
+ * 年間休日 111.2 日 + 年休取得 12.1 日 = 実稼働 約 240 日/年 = 20 日/月。
+ * 詳細は docs/spec/calculation-logic.md §3.3。
+ */
 export const DEFAULT_DAYS_PER_MONTH = 20;
 
 /** スピード警告発動閾値（月）。`updateWaitMonths >= 3` で警告。 */
