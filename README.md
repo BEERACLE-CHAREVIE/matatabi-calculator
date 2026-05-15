@@ -130,7 +130,7 @@ README 冒頭に CI バッジを置きたい場合は以下を参考に追加し
 
 - 正規ホスト: Apex (`roi.nekonimatatabi.com`)。将来 `www.roi.nekonimatatabi.com` を併設する場合は Cloudflare の Redirect Rule で 301 を返す方針（現時点では併設なし）
 - SSL/TLS モード: **Full (strict)**、Always Use HTTPS = On、Automatic HTTPS Rewrites = On、Minimum TLS Version = 1.2
-- HSTS: 段階導入。初期 `max-age=300`（5 分）で開始し、1〜2 週間の安定運用後に `max-age=31536000` + `includeSubDomains` へ引き上げる（Preload 申請は別 Issue で扱う）
+- HSTS: 本格運用値 `max-age=31536000; includeSubDomains`。Preload 申請は別 Issue で扱う。
 - 詳細な Cloudflare ダッシュボード設定値は Issue #12 のコメントを参照
 
 ## ドキュメント
